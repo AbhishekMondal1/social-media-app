@@ -7,8 +7,11 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const {JWT_SECRET} = require('../keys')
 
+const requirelogin = require('../middleware/requireLogin')
 
-
+router.get('/protected',requirelogin,(req,res)=>{
+    res.send("Welcome user")
+})
 
 router.post('/signup',(req,res)=>{
    const {name,email,password} = req.body
