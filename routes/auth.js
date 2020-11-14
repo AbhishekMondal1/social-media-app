@@ -1,5 +1,4 @@
 const express = require('express')
-const { mongo, Mongoose } = require('mongoose')
 const router = express.Router()
 const mongoose = require('mongoose')
 const User = mongoose.model('User')
@@ -8,10 +7,6 @@ const jwt = require('jsonwebtoken')
 const {JWT_SECRET} = require('../keys')
 
 const requirelogin = require('../middleware/requireLogin')
-
-router.get('/protected',requirelogin,(req,res)=>{
-    res.send("Welcome user")
-})
 
 router.post('/signup',(req,res)=>{
    const {name,email,password} = req.body
@@ -47,6 +42,8 @@ router.post('/signup',(req,res)=>{
 
 
 router.post('/signin',(req,res)=>{
+    res.send('signin')
+    /*
     const {email,password} = req.body
     if(!email || !password){
         return res.status(422).json({error:"Please enter Email or Password"})
@@ -70,8 +67,7 @@ router.post('/signin',(req,res)=>{
         .catch(err=>{
             console.log(err)
         })
-    })
+    })*/
 })
-
 
 module.exports = router
