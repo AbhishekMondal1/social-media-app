@@ -5,7 +5,7 @@ const PORT = 7000
 const {MONGOURI} = require('./keys')
 
 
-mongoose.connect(MONGOURI,()=>{},{
+mongoose.connect(MONGOURI,{
     useNewUrlParser: true,
     useUnifiedTopology:true
 })

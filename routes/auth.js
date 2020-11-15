@@ -42,8 +42,7 @@ router.post('/signup',(req,res)=>{
 
 
 router.post('/signin',(req,res)=>{
-    res.send('signin')
-    /*
+
     const {email,password} = req.body
     if(!email || !password){
         return res.status(422).json({error:"Please enter Email or Password"})
@@ -67,7 +66,7 @@ router.post('/signin',(req,res)=>{
         .catch(err=>{
             console.log(err)
         })
-    })*/
+    })
 })
 
 module.exports = router
