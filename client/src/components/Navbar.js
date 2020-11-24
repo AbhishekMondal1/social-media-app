@@ -1,8 +1,8 @@
-import React,{usecontext} from 'react'
-import {link} from  'react-router-dom'
-import {usercontext} from '../app'
-const navbar = ()=>{
-    const {state,dispatch} =usecontext(usercontext)
+import React,{UseContext} from 'react'
+import {Link} from 'react-router-dom'
+import {UserContext} from '../App'
+const NavBar = ()=>{
+    const {state,dispatch} =UseContext(UserContext)
     const renderlist =()=>{
         if (state){
             return [
@@ -18,13 +18,13 @@ const navbar = ()=>{
     }
     return(
         <nav>
-        <div classname="nav-wrapper white">
-            <link to={state?"/":"/signin"} classname="brand-logo left">instagram</link>
-            <ul id="nav-mobile"classname="right">
+        <div className="nav-wrapper white">
+            <link to={state?"/":"/signin"} className="brand-logo left">instagram</link>
+            <ul id="nav-mobile"className="right">
             {renderlist()}
             </ul>
         </div>
         </nav>
     )
 }
-export default navbar;
+export default Navbar;
