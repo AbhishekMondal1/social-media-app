@@ -27,3 +27,4 @@ const navbar = ()=>{
         </nav>
     )
 }
+export default navbar
