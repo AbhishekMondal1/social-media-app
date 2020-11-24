@@ -26,3 +26,4 @@ const navbar = ()=>{
         </div>
         </nav>
     )
+    }
