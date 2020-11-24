@@ -1,29 +1,28 @@
-import React from "react";
-import { Link } from "react-router-dom";
-const Navbar = () => {
-  return (
-    <nav>
-      <div className="nav-wrapper white">
-        <Link to="/" className="brand-logo left">
-          Connect All
-        </Link>
-        <ul id="nav-mobile" className="right">
-          <li>
-            <Link to="/signin">Login</Link>
-          </li>
-          <li>
-            <Link to="/signup">Signup</Link>
-          </li>
-          <li>
-            <Link to="/profile">Profile</Link>
-          </li>
-          <li>
-            <Link to="/create">CreatePost</Link>
-          </li>
-        </ul>
-      </div>
-    </nav>
-  );
-};
-
-export default Navbar;
+import React,{usecontext} from 'react'
+import {link} from  'react-router-dom'
+import {usercontext} from '../app'
+const navbar = ()=>{
+    const {state,dispatch} =usecontext(usercontext)
+    const renderlist =()=>{
+        if (state){
+            return [
+                <li><link to="/profile">profile</link></li>,
+                <li><link to="/create">create post</link></li>
+            ]
+        }else{
+            return [
+                <li><link to="/signin">signin</link></li>,
+                <li><link to="/signup">signup</link></li>
+            ]
+        }
+    }
+    return(
+        <nav>
+        <div classname="nav-wrapper white">
+            <link to={state?"/":"/signin"} classname="brand-logo left">instagram</link>
+            <ul id="nav-mobile"classname="right">
+            {renderlist()}
+            </ul>
+        </div>
+        </nav>
+    )
