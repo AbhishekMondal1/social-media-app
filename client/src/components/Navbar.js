@@ -1,9 +1,9 @@
 import React,{useContext} from 'react'
-import {Link} from 'react-router-dom'
+import {Link } from 'react-router-dom'
 import {UserContext} from '../App'
 const NavBar = ()=>{
     const {state,dispatch} = useContext(UserContext)
-    const renderList =()=>{
+    const renderList = ()=>{
         if(state){
             return [
                 <li><Link to="/profile">profile</Link></li>,
@@ -20,11 +20,11 @@ const NavBar = ()=>{
         <nav>
         <div className="nav-wrapper white">
             <Link to={state?"/":"/signin"} className="brand-logo left">instagram</Link>
-            <ul id="nav-mobile"className="right">
+            <ul id="nav-mobile" className="right">
             {renderList()}
             </ul>
         </div>
         </nav>
     )
 }
-export default NavBar;
+export default NavBar
