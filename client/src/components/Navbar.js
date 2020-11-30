@@ -1,13 +1,26 @@
 import React,{useContext} from 'react'
-import {Link } from 'react-router-dom'
+import {Link ,useHistory} from 'react-router-dom'
 import {UserContext} from '../App'
 const NavBar = ()=>{
     const {state,dispatch} = useContext(UserContext)
+    const history = useHistory()
     const renderList = ()=>{
+        console.log(state)
         if(state){
             return [
                 <li><Link to="/profile">profile</Link></li>,
-                <li><Link to="/create">create post</Link></li>
+                <li><Link to="/create">create post</Link></li>,
+                <li>
+                    <button className="btn #880e4f pink darken-4"
+          onClick={()=>{
+              localStorage.clear()
+              dispatch({type:"CLEAER"})
+              history.push('/signin')
+          }}
+        >
+          Logout
+        </button>
+                </li>
             ]
         }else{
             return [
