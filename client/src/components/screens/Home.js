@@ -77,8 +77,8 @@ const Home = () => {
         "Authorization": "Bearer " + localStorage.getItem("jwt")
       },
       body:JSON.stringify({
-        text:text,
-        postId:postId
+        text,
+        postId
       })
     }).then(res => res.json())
       .then(result => {
@@ -89,8 +89,8 @@ const Home = () => {
             return item;
           }
         })
-        console.log(newData)
-          //setData(newData)
+        //console.log(newData)
+          setData(newData)
       }).catch(err => {
       console.log(err)
     })
