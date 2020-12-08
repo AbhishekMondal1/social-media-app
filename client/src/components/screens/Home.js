@@ -1,16 +1,16 @@
 import React,{useState, useEffect, useContext} from "react";
-import {UserContext} from '../../App'
+import { UserContext } from '../../App'
+import {Link} from 'react-router-dom'
 const Home = () => {
   const [data, setData] = useState([])
   const {state,dispatch} = useContext(UserContext)
   useEffect(()=>{
-    fetch('./allpost', {
+    fetch('/allpost', {
       headers: {
         "Authorization":"Bearer "+localStorage.getItem("jwt")
       }
     }).then(res => res.json())
       .then(result => {
-        console.log(result)
       setData(result.posts)
     })
   }, [])
@@ -104,10 +104,13 @@ const Home = () => {
       }
     }).then(res => res.json)
       .then(result => {
-        console.log(result)
+        console.log("res")
+        console.log(result._id)
         const newData = data.filter(item => {
+          console.log(item._id);
           return item._id !== result._id
         })
+        console.log("newd")
         console.log(newData)
         setData(newData)
       })
@@ -121,14 +124,15 @@ const Home = () => {
           return (
             <div className="card home-card" key={item._id}>
               <h5>
-                {item.postedBy.name}
+                <Link to={"/profile/"+item.postedBy._id !== state._id?"/profile/"+item.postedBy._id : "/profile/"}>{item.postedBy.name}</Link>
+
                 {item.postedBy._id == state._id && (
                   <i
                     className="material-icons"
                     style={{
                       float: "right",
                     }}
-                    onClick={()=>deletePost(item._id)}
+                    onClick={() => deletePost(item._id)}
                   >
                     delete
                   </i>

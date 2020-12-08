@@ -34,7 +34,8 @@ const Signin = () => {
         console.log(data)
         if (data.error) {
           M.toast({ html: data.error, classes: "#ff1744 red accent-3" });
-        } else {          
+        } else {
+          console.log(data.token);      
             localStorage.setItem("jwt", data.token);
           localStorage.setItem("user", JSON.stringify(data.user));
           dispatch({type:"USER", payload:data.user})

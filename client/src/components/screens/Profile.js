@@ -4,7 +4,7 @@ const Profile = () => {
   const [mypics,setPics] = useState([])
   const {state,dispatch} = useContext(UserContext)
   useEffect(() => {
-    fetch('./mypost', {
+    fetch('/mypost', {
       headers: {
         "Authorization": "Bearer " + localStorage.getItem("jwt")
       }

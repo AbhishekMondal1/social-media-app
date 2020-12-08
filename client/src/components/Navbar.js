@@ -14,7 +14,7 @@ const NavBar = ()=>{
                     <button className="btn #880e4f pink darken-4"
           onClick={()=>{
               localStorage.clear()
-              dispatch({type:"CLEAER"})
+              dispatch({type:"CLEAR"})
               history.push('/signin')
           }}
         >

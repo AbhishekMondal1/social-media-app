@@ -59,7 +59,7 @@ router.put('/like', requireLogin, (req, res) => {
     )
       .populate("postedBy", "_id name")
       .exec((err, result) => {
-        if (err) {
+        if (err) { 
           return res.status(422).json({ error: err });
         } else {
           res.json(result);
@@ -122,9 +122,7 @@ router.delete('/deletepost/:postId',requireLogin, (req, res) => {
         post.remove()
           .then(result => {
           res.json(result)
-          }).catch(err => {
-            console.log(err)
-        })
+          })
       }
   })
 })
