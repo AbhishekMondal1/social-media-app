@@ -8,20 +8,28 @@ const NavBar = ()=>{
         //console.log(state)
         if(state){
             return [
-                <li><Link to="/profile">profile</Link></li>,
-                <li><Link to="/create">create post</Link></li>,
-                <li>
-                    <button className="btn #880e4f pink darken-4"
-          onClick={()=>{
-              localStorage.clear()
-              dispatch({type:"CLEAR"})
-              history.push('/signin')
-          }}
-        >
-          Logout
-        </button>
-                </li>
-            ]
+              <li>
+                <Link to="/profile">profile</Link>
+              </li>,
+              <li>
+                <Link to="/create">create post</Link>
+              </li>,
+              <li>
+                <Link to="/myfollowingpost">My following Posts</Link>
+              </li>,
+              <li>
+                <button
+                  className="btn #880e4f pink darken-4"
+                  onClick={() => {
+                    localStorage.clear();
+                    dispatch({ type: "CLEAR" });
+                    history.push("/signin");
+                  }}
+                >
+                  Logout
+                </button>
+              </li>,
+            ];
         }else{
             return [
                 <li><Link to="/signin">signin</Link></li>,

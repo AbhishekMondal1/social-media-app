@@ -6,24 +6,110 @@ const Profile = () => {
   const [userProfileName, setProfileName] = useState([])
   const { state, dispatch } = useContext(UserContext);
   const { userid } = useParams()
-  console.log(userProfileName);
+  const [showFollow,setShowFollow] = useState(state?!state.following.includes(userid):true)
+  //console.log(userProfileName);
   useEffect(() => {
     fetch(`/user/${userid}`, {
       method: "GET",
       headers: {
-        Authorization: "Bearer " + localStorage.getItem("jwt"),
+        "Authorization": "Bearer " + localStorage.getItem("jwt"),
       },
     })
       .then((res) => res.json())
       .then(result => {
-        console.log(result.user);
+       // console.log(result.user);
+        //console.log(result)
         setProfile(result.posts)
         setProfileName(result.user)
       })
-  }, []);
+  }, [userProfileName]);
+    //[userProfile]);
+
+  const followUser = () => {
+    fetch("/follow", {
+      method: "PUT",
+      headers: {
+        "content-type": "application/json",
+        "Authorization": "Bearer " + localStorage.getItem("jwt"),
+      },
+      body: JSON.stringify({
+        followId: userid
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("data loggedin user", data); // logged in user data
+        console.log("userprofilenm",userProfileName); // opened profile 
+     // }) //
+ // } //
+        
+        dispatch({
+          type: "UPDATE",
+          payload: { followers: data.followers, following: data.following }
+        });
+        // localStorage.setItem("user", JSON.stringify(data)); 
+       
+       
+        setProfileName((prevState) => {
+          console.log("prevst",prevState);
+          return {
+            ...prevState,
+           /* user: {
+              ...prevState.user,
+              followers: [...prevState.user.followers, data._id],
+            },*/
+          };
+        });
+        setShowFollow(false)
+      })
+      
+      .catch((err) => {
+          console.log("l", err);
+        });
+  } 
+
+  
+  const unfollowUser = () => {
+    fetch("/unfollow", {
+      method: "PUT",
+      headers: {
+        "content-type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("jwt"),
+      },
+      body: JSON.stringify({
+        unfollowId: userid,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("data loggedin user", data); // logged in user data
+        console.log("userprofilenm", userProfileName); // opened profile
+
+        dispatch({
+          type: "UPDATE",
+          payload: { followers: data.followers, following: data.following },
+        });
+        // localStorage.setItem("user", JSON.stringify(data));
+
+        setProfileName((prevState) => {
+          console.log("prevst", prevState);
+          return {
+            ...prevState,
+            /* user: {
+              ...prevState.user,
+              followers: [...prevState.user.followers, data._id],
+            },*/
+          };
+        });
+        setShowFollow(true);
+      })
+      .catch((err) => {
+        console.log("l", err);
+      });
+  }; 
   return (
     <>
-      {(userProfile && userProfileName) ? (
+      {userProfile && userProfileName ? (
         <div style={{ maxWidth: "550px", margin: "0px auto" }}>
           <div
             style={{
@@ -54,9 +140,28 @@ const Profile = () => {
                 }}
               >
                 <h6>{userProfile.length} posts</h6>
-                <h6>50 followers</h6>
-                <h6>50 folllowing</h6>
+                <h6>{userProfileName.followers?.length} followers</h6>
+                <h6>{userProfileName.following?.length} following</h6>
               </div>
+              {showFollow ?
+              <button
+                className="btn waves-effect waves-light #64b5f6 blue darken-2"
+                type="submit"
+                name="action"
+                onClick={() => followUser()}
+              >
+                  Follow
+              </button>
+                :
+              <button
+                className="btn waves-effect waves-light #64b5f6 blue darken-2"
+                type="submit"
+                name="action"
+                onClick={() => unfollowUser()}
+              >
+                Unfollow
+              </button>
+            }
             </div>
           </div>
           <div className="gallary">
@@ -71,10 +176,10 @@ const Profile = () => {
               );
             })}
           </div>
-        </div >
+        </div>
       ) : (
-          <h2>Loading...</h2>
-        )}
+        <h2>Loading...</h2>
+      )}
     </>
   );
 }
