@@ -1,11 +1,9 @@
-import React, {useState,useContext} from "react";
+import React, { useState, useContext } from "react";
 import { Link, useHistory, useRouteMatch } from "react-router-dom";
-import {UserContext} from '../../App'
+
 import M from "materialize-css";
-const Signin = () => {
-  const {state,dispatch} = useContext(UserContext)
+const Reset = () => {
   const history = useHistory();
-  const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const PostData = () => {
     if (
@@ -13,34 +11,31 @@ const Signin = () => {
         email
       )
     ) {
-       M.toast({
+      M.toast({
         html: "Invalid Email",
         classes: "#ff1744 red accent-3",
-       })
-      return
+      });
+      return;
     }
-    fetch("/signin", {
+    fetch("/reset-password", {
       method: "post",
       headers: {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        password,
         email,
       }),
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log(data)
         if (data.error) {
           M.toast({ html: data.error, classes: "#ff1744 red accent-3" });
         } else {
-          console.log(data.token);      
-            localStorage.setItem("jwt", data.token);
-          localStorage.setItem("user", JSON.stringify(data.user));
-          dispatch({type:"USER", payload:data.user})
-          M.toast({ html: "signed in success", classes: "#1976d2 blue darken-2" });
-          history.push("/");
+          M.toast({
+            html: data.message,
+            classes: "#1976d2 blue darken-2",
+          });
+          history.push("/signin");
         }
       })
       .catch((err) => {
@@ -57,29 +52,17 @@ const Signin = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <input
-          type="password"
-          placeholder="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
         <button
           className="btn waves-effect waves-light #64b5f6 blue darken-2"
           type="submit"
           name="action"
-          onClick={()=>PostData()}
+          onClick={() => PostData()}
         >
-          Login
+          Reset Password
         </button>
-        <h5>
-          <Link to="/signup"> Don't have an account?</Link>
-        </h5>
-        <h6>
-          <Link to="/reset"> Forgot Password?</Link>
-        </h6>
       </div>
     </div>
   );
 };
 
-export default Signin;
+export default Reset;
