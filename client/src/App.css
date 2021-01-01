@@ -51,6 +51,10 @@ gallary {
     left: auto !important;
 }
 
+.collection-item{
+    width: 100%;
+}
+
 .material-icons:hover{
     cursor: pointer;
 }

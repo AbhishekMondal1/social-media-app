@@ -1,8 +1,9 @@
 import React,{useEffect,useState,useContext} from "react";
 import {UserContext} from '../../App'
 const Profile = () => {
-  const [mypics,setPics] = useState([])
+  const [mypics, setPics] = useState([])  
   const {state,dispatch} = useContext(UserContext)
+  const [data, setData] = useState([state]);
   useEffect(() => {
     fetch('/mypost', {
       headers: {
@@ -14,7 +15,39 @@ const Profile = () => {
         console.log(result);
         setPics(result.mypost)
     })
-  },[])
+  }, [])
+  
+  const editBio = (text) => { 
+    console.log(text)
+    fetch("/editbio", {
+      method: "put",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + localStorage.getItem("jwt"),
+      },
+      body: JSON.stringify({
+        text
+      }),
+    })
+      .then((res) => res.json())
+      .then((result) => { console.log(result);
+        const newData = result;
+        /*const newData = data.map((item) => {
+          if (item._id == result._id) {
+            return result;
+          } else {
+            return item;
+          }
+        });*/
+        console.log("nwq", result);
+        console.log("nw",newData);
+        setData(newData);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   return (
     <div style={{ maxWidth: "550px", margin: "0px auto" }}>
       <div
@@ -32,8 +65,27 @@ const Profile = () => {
           />
         </div>
         <div>
-          <h4>{state?state.name:"loading"}</h4>
-          <h4>{state?state.email:"loading"}</h4>
+          <h4>{state ? state.name : "loading"}</h4>
+          <h4>{state ? state.email : "loading"}</h4>
+          <h5>{data.bio ? data.bio : state.bio}</h5>
+                   
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              editBio(e.target[0].value);
+            }}
+          >
+            <input type="text" placeholder="add bio" />
+          </form>
+          <h5
+            key="1"
+            data-target="modal1"
+            className="large material-icons modal-trigger"
+            style={{ color: "black" }}
+          >
+            edit
+          </h5>
+
           <div
             style={{
               display: "flex",
@@ -42,22 +94,22 @@ const Profile = () => {
             }}
           >
             <h6>{mypics.length} posts</h6>
-            <h6>{state?state.followers.length:"0"} followers</h6>
-            <h6>{state?state.following.length:"0"} folllowing</h6>
+            <h6>{state ? state.followers.length : "0"} followers</h6>
+            <h6>{state ? state.following.length : "0"} folllowing</h6>
           </div>
         </div>
       </div>
       <div className="gallary">
-        {
-          mypics.map(item => {
-            return (
-              <img key={item._id}
-                className="item"
-                 src = {item.photo} alt={item.title}/>
-            );
-          })
-        }
-       
+        {mypics.map((item) => {
+          return (
+            <img
+              key={item._id}
+              className="item"
+              src={item.photo}
+              alt={item.title}
+            />
+          );
+        })}
       </div>
     </div>
   );

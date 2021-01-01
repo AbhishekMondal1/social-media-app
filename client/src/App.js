@@ -25,6 +25,9 @@ const Routing = () => {
     } else {
       if(!history.location.pathname.startsWith('/reset'))
         history.push('/signin')
+    
+      /*if (!history.location.pathname.startsWith("/google"))
+        history.push("/google");*/
     }
   },[])
   return (

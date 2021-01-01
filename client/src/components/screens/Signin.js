@@ -67,8 +67,8 @@ const Signin = () => {
           className="btn waves-effect waves-light #64b5f6 blue darken-2"
           type="submit"
           name="action"
-          onClick={()=>PostData()}
-        >
+          onClick={() => PostData()}
+          >
           Login
         </button>
         <h5>

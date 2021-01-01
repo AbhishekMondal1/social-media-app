@@ -1,9 +1,14 @@
 const express = require('express')
 const app = express()
 const mongoose = require('mongoose')
-const PORT = 7000
-const {MONGOURI} = require('./keys')
+const PORT = process.env.PORT || 7000
+const {MONGOURI} = require('./config/keys')
 const cors = require('cors')
+//const bodyParser = require('body-parser')
+//const { urlencoded, json } = require('body-parser')
+//const passport = require('passport')
+//const cookieSession = require("cookie-session");
+
 app.use(cors())
 mongoose.connect(MONGOURI,{
     useNewUrlParser: true,
@@ -16,13 +21,64 @@ mongoose.connection.on('error',(err)=>{
     console.log("err connection",err)
 })
 
-
+//require('./middleware/passport_setup')
 require('./models/user')
 require('./models/post')
 app.use(express.json())
 app.use(require('./routes/auth'))
 app.use(require('./routes/post'))
 app.use(require('./routes/user'))
+
+//app.use(bodyParser,urlencoded({extended:false}))
+/*
+app.use(bodyParser, json())
+const isLoggedin = (req, res, next) => {
+    if (req.user) {
+        next();
+    }
+    else {
+        res.sendStatus(401);
+    }
+}
+
+app.use(
+  cookieSession({
+    name: "connectall-session",
+    keys: ["key1", "key2"],
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+app.get('/',(req,res)=> res.send('not logged in'))
+app.get('/failuer', (req, res) => res.send("you are failed to login"))
+app.get('/success', isLoggedin, (req, res) => res.send(`Welcome ${req.user.email} `))
+
+app.get("/google",
+  passport.authenticate("google", { scope: ["email", "profile"] })
+);
+
+app.get("/google/callback",
+  passport.authenticate("google", {
+    successRedirect: "/success",
+    failureRedirect: "/failure",
+  })
+);
+
+app.get('/logout', (req, res) => {
+    req.session = null;
+    req.logout();
+    res.redirect('/')
+})
+*/
+if (process.env.NODE_ENV == "production") {
+  app.use(express.static('client/build'))
+  const path = require('path')
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname,'client','build','index.html'))
+  })
+}
+
 app.listen(PORT,()=>{
     console.log("Server is Running",PORT); 
 })

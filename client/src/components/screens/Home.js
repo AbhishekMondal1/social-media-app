@@ -11,6 +11,7 @@ const Home = () => {
       }
     }).then(res => res.json())
       .then(result => {
+        console.log(result)
       setData(result.posts)
     })
   }, [])
@@ -128,16 +129,17 @@ const Home = () => {
 
                 {item.postedBy._id == state._id && (
                   <i
-                    className="material-icons"
-                    style={{
-                      float: "right",
-                    }}
-                    onClick={() => deletePost(item._id)}
+                  className="material-icons"
+                  style={{
+                    float: "right",
+                  }}
+                  onClick={() => deletePost(item._id)}
                   >
                     delete
                   </i>
                 )}
               </h5>
+               <h5> <Link to={"/profile/"+item.postedBy._id !== state._id?"/profile/"+item.postedBy._id : "/profile/"}>{item.postedBy.username}</Link> </h5>
               <div className="card-image">
                 <img src={item.photo} />
               </div>
@@ -178,6 +180,7 @@ const Home = () => {
                   }}
                 >
                   <input type="text" placeholder="add a comment" />
+                  <h6>{item.createdAt}</h6>
                 </form>
               </div>
             </div>

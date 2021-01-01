@@ -9,6 +9,7 @@ const Signup = () => {
   const [name,setName] = useState("")
   const [password,setPassword] = useState("")
   const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("")
   const PostData = () => {
     if (!
       /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
@@ -25,6 +26,7 @@ const Signup = () => {
           name,
           password,
           email,
+          username
         })
       })
         .then((res) => res.json())
@@ -54,6 +56,12 @@ const Signup = () => {
           placeholder="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
         />
         <input
           type="password"

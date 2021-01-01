@@ -13,6 +13,13 @@ const userSchema = new mongoose.Schema({
         type:String,
         required:true
     },
+    username: {
+        type: String,
+        required:true
+    },
+    bio: {
+        type:String,
+    },
     resetToken: String,
     expireToken: Date,
     followers: [{type:ObjectId,ref:"User"}],

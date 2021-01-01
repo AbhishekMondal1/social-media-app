@@ -15,7 +15,7 @@ router.get('/user/:userid',requireLogin,(req, res) => {
                 .exec((err, posts) => {
                     if (err) {
                     return res.status(422).json({error:err})
-                    }
+                    }console.log("u",user);
                     res.json({user,posts})
             })
         }).catch(err => {
@@ -177,4 +177,37 @@ router.put('/unfollow',requireLogin,(req, res) => {
     )
 })
 */
+router.post('/search-users', (req, res) => {
+  let userPattern = new RegExp("^" + req.body.query)
+  User.find({ email: { $regex: userPattern } })
+    .select("_id email")
+    .then(user => {
+      res.json({ user })
+    }).catch(err => {
+    console.log(err)
+  })
+})
+
+
+router.put("/editbio", requireLogin, (req, res) => {
+  const userbio = req.body.text;
+  User.findByIdAndUpdate(
+    req.user._id,
+    {
+      bio: userbio
+    },
+    {
+      new: true,
+    }
+  )
+    .select("-password")
+    .exec((err, result) => {
+      if (err) {
+        return res.status(422).json({ error: err });
+      } else {
+        res.json(result); console.log(result);
+      }
+    });
+});
+
 module.exports = router;

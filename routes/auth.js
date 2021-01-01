@@ -5,7 +5,7 @@ const User = mongoose.model('User')
 const bcrypt = require('bcrypt')
 const crypto = require('crypto')
 const jwt = require('jsonwebtoken')
-const {JWT_SECRET} = require('../keys')
+const {JWT_SECRET} = require('../config/keys')
 const requirelogin = require('../middleware/requireLogin')
 const nodemailer = require('nodemailer')
 const sendgridTranspost = require('nodemailer-sendgrid-transport')
@@ -22,8 +22,8 @@ const transposter = nodemailer.createTransport(sendgridTranspost({
 
 
 router.post('/signup',(req,res)=>{
-   const {name,email,password} = req.body
-   if(!email || !password || !name){
+   const {name,email,password,username} = req.body
+   if(!email || !password || !name || !username){
       return res.status(422).json({error:"Fill all Fields"})
    }
    User.findOne({email:email})
@@ -35,7 +35,8 @@ router.post('/signup',(req,res)=>{
             const user = new User({
                 email,
                 password:hashedpassword,
-                name
+                name,
+                username
             })
     
             user.save()
@@ -76,8 +77,8 @@ router.post('/signin',(req,res)=>{
             if(doMatch){
                // res.json({message:"successfully signed in"})
                 const token = jwt.sign({ _id: savedUser._id }, JWT_SECRET)
-                const {_id,name,email,followers,following} = savedUser
-                res.json({ token, user: { _id, name, email, followers, following } })  
+                const {_id,name,email,username,followers,following, bio} = savedUser
+                res.json({ token, user: { _id, name, email, username, followers, following, bio } })  
             }
             else{
                 return res.status(422).json({error:"Invalid Email or Password"}) 
