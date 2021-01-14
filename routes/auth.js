@@ -22,7 +22,7 @@ const transposter = nodemailer.createTransport(sendgridTranspost({
 
 
 router.post('/signup',(req,res)=>{
-   const {name,email,password,username} = req.body
+   const {name,email,password,username,pic} = req.body
    if(!email || !password || !name || !username){
       return res.status(422).json({error:"Fill all Fields"})
    }
@@ -36,7 +36,8 @@ router.post('/signup',(req,res)=>{
                 email,
                 password:hashedpassword,
                 name,
-                username
+                username,
+                pic
             })
     
             user.save()
@@ -77,8 +78,8 @@ router.post('/signin',(req,res)=>{
             if(doMatch){
                // res.json({message:"successfully signed in"})
                 const token = jwt.sign({ _id: savedUser._id }, JWT_SECRET)
-                const {_id,name,email,username,followers,following, bio} = savedUser
-                res.json({ token, user: { _id, name, email, username, followers, following, bio } })  
+                const {_id,name,email,username,followers,following, bio,pic} = savedUser
+                res.json({ token, user: { _id, name, email, username, followers, following, bio, pic } })  
             }
             else{
                 return res.status(422).json({error:"Invalid Email or Password"}) 
