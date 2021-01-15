@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema({
     bio: {
         type:String,
     },
+    pic:{
+        type:String,
+        default:"https://res.cloudinary.com/cloudaditya/image/upload/v1610609840/noimages_r1ckl0.png"
+    },
     resetToken: String,
     expireToken: Date,
     followers: [{type:ObjectId,ref:"User"}],
