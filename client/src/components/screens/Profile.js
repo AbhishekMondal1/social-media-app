@@ -67,6 +67,7 @@ const Profile = () => {
         <div>
           <h4>{state ? state.name : "loading"}</h4>
           <h4>{state ? state.email : "loading"}</h4>
+          <h4>{state ? state.username : "loading"}</h4>
           <h5>{data.bio ? data.bio : state.bio}</h5>
                    
           <form

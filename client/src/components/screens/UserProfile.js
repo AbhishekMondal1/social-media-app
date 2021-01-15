@@ -132,6 +132,7 @@ const Profile = () => {
             <div>
               <h4>{userProfileName.name}</h4>
               <h5>{userProfileName.email}</h5>
+              <h5>{userProfileName.username}</h5>
               <h5>{userProfileName.bio}</h5>
               <div
                 style={{

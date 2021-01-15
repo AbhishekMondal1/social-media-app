@@ -12,6 +12,7 @@ import UserProfile from './components/screens/UserProfile'
 import SubscribeUserPost from "./components/screens/SubscribeUserPost";
 import Reset from './components/screens/Reset';
 import NewPassword from './components/screens/NewPassword'
+//import UserPosts from './components/screens/UserPosts'
 export const UserContext = createContext()
 
 const Routing = () => {

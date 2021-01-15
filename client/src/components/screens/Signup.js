@@ -25,7 +25,7 @@ const Signup = () => {
         body: JSON.stringify({
           name,
           password,
-          email,
+          email:email.toLowerCase(),
           username
         })
       })
@@ -40,8 +40,11 @@ const Signup = () => {
         }).catch(err => {
           console.log(err)
         })
-  }
-  return (
+    
+    
+      }
+
+      return (
     <div className="mycard">
       <div className="card auth-card input-field">
         <h2> Connect All </h2>
@@ -75,9 +78,12 @@ const Signup = () => {
           name="action"
           onClick={()=>PostData()}
         >
-          Signup
+              Signup
         </button>
         <h5>
+        <a href="http://localhost:5000/auth/google" >Login with Google</a>
+        </h5>
+          <h5>
           <Link to="/signin"> Already have an account?</Link>
         </h5>
       </div>

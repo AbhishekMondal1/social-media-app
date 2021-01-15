@@ -2,6 +2,7 @@ import React, {useState,useContext} from "react";
 import { Link, useHistory, useRouteMatch } from "react-router-dom";
 import {UserContext} from '../../App'
 import M from "materialize-css";
+import annyang from 'annyang'
 const Signin = () => {
   const {state,dispatch} = useContext(UserContext)
   const history = useHistory();
@@ -47,6 +48,36 @@ const Signin = () => {
         console.log(err);
       });
   };
+
+  const Anny = () => { 
+    if (annyang) {
+     
+      // Let's define our first command. First the text we expect, and then the function it should call
+      var commands = {
+        "change heading": function () {
+          console.log("speaking")
+          document.getElementById("para2").innerHTML = "New para";
+        },
+        "change para": function () {
+          document.getElementById("para2").innerHTML = "Latest para";
+        },
+        "change heading again": function () {
+          document.getElementById("para2").innerHTML = "Old para";
+        },
+        "write email *tag": function (variable) {
+           console.log(variable);
+          let eml = document.getElementsByTagName("input")[1];
+          eml.value = variable;
+        }
+      };
+
+      // Add our commands to annyang
+      annyang.addCommands(commands);
+
+      // Start listening. You can call this here, or attach this call to an event, button, etc.
+      annyang.start();
+    }
+  }
   return (
     <div className="mycard">
       <div className="card auth-card input-field">
@@ -68,8 +99,15 @@ const Signin = () => {
           type="submit"
           name="action"
           onClick={() => PostData()}
-          >
+        >
           Login
+        </button>
+        <button
+          className="btn waves-effect waves-light #64b5f6 blue darken-2"
+          
+          onClick={() => Anny()}
+        >
+          Voice Cmd
         </button>
         <h5>
           <Link to="/signup"> Don't have an account?</Link>
