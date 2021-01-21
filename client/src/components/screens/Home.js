@@ -32,7 +32,7 @@ const Home = () => {
       .then(result => {
         //console.log(result)
         const newData = data.map(item => {
-          if (item._id == result._id) {
+          if (item._id === result._id) {
             return result
           }
           else {
@@ -59,7 +59,7 @@ const Home = () => {
       .then(result => {
         //console.log(result)
         const newData = data.map((item) => {
-          if (item._id == result._id) {
+          if (item._id === result._id) {
             return result;
           } else {
             return item;
@@ -86,7 +86,7 @@ const Home = () => {
     }).then(res => res.json())
       .then(result => {
         const newData = data.map((item) => {
-          if (item._id == result._id) {
+          if (item._id === result._id) {
             return result;
           } else {
             return item;
@@ -137,7 +137,7 @@ const Home = () => {
                   {item.postedBy.name}
                 </Link>
 
-                {item.postedBy._id == state._id && (
+                {item.postedBy._id === state._id && (
                   <i
                     className="material-icons"
                     style={{
@@ -162,7 +162,7 @@ const Home = () => {
                 </Link>{" "}
               </h5>
               <div className="card-image">
-                <img src={item.photo} />
+                <img src={item.photo} alt=""/>
               </div>
               <div className="card-content">
                 <i className="material-icons">favorite</i>

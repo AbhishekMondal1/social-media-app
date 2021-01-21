@@ -1,9 +1,11 @@
-import React,{useEffect,useState,useContext} from "react";
+import React, { useEffect, useState, useContext } from "react";
+import {Link,useParams} from 'react-router-dom'
 import {UserContext} from '../../App'
 const Profile = () => {
   const [mypics, setPics] = useState([])  
   const {state,dispatch} = useContext(UserContext)
   const [data, setData] = useState([state]);
+    const { postid } = useParams();
   useEffect(() => {
     fetch('/mypost', {
       headers: {
@@ -12,8 +14,8 @@ const Profile = () => {
     }).then(res => res.json())
       .then(result => {
         console.log(state)
-        console.log(result);
-        setPics(result.mypost)
+        console.log("result",result);
+        setPics(result.posts)
     })
   }, [])
   
@@ -61,7 +63,7 @@ const Profile = () => {
         <div>
           <img
             style={{ width: "160px", height: "160px", borderRadius: "80px" }}
-            src="https://images.unsplash.com/photo-1485206412256-701ccc5b93ca?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60"
+            src={state?state.pic:"loading"}
           />
         </div>
         <div>
@@ -94,7 +96,7 @@ const Profile = () => {
               width: "108%",
             }}
           >
-            <h6>{mypics.length} posts</h6>
+            <h6>{mypics ? mypics.length:"0"} posts</h6>
             <h6>{state ? state.followers.length : "0"} followers</h6>
             <h6>{state ? state.following.length : "0"} folllowing</h6>
           </div>
@@ -103,12 +105,18 @@ const Profile = () => {
       <div className="gallary">
         {mypics.map((item) => {
           return (
-            <img
-              key={item._id}
-              className="item"
-              src={item.photo}
-              alt={item.title}
-            />
+            <>
+              <Link
+                to={"/mypost/" + item._id}
+              >
+                <img
+                  key={item._id}
+                  className="item"
+                  src={item.photo}
+                  alt={item.title}
+                />
+              </Link>
+            </>
           );
         })}
       </div>

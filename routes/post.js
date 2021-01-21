@@ -63,15 +63,18 @@ router.post('/createpost',requireLogin,(req,res)=>{
     })
 })
 
-router.get('/mypost/:postid    ',requireLogin,(req,res)=>{
-    Post.find({postedBy:req.user._id})
-    .populate("PostedBy", "_id name")
-    .then(mypost=>{
-        res.json({mypost})    
-    })
-    .catch(err=>{
-        console.log(err)
-    })
+router.get('/mypost/:postid', requireLogin, (req, res) => {
+  console.log(req.params.postid)
+    Post.findOne({ _id: req.params.postid })
+      .populate("postedBy", "_id name username")
+      .populate("comments.postedBy", "_id name username")
+      .then((mypost) => {
+        res.json({ mypost });
+        console.log(mypost);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
 })
 
 router.put('/like', requireLogin, (req, res) => {

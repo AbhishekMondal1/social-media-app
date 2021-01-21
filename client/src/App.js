@@ -12,6 +12,7 @@ import UserProfile from './components/screens/UserProfile'
 import SubscribeUserPost from "./components/screens/SubscribeUserPost";
 import Reset from './components/screens/Reset';
 import NewPassword from './components/screens/NewPassword'
+import UserPosts from "./components/screens/UserPosts";
 //import UserPosts from './components/screens/UserPosts'
 export const UserContext = createContext()
 
@@ -50,6 +51,9 @@ const Routing = () => {
       </Route>
       <Route path="/profile/:userid">
         <UserProfile />
+      </Route>
+      <Route path="/mypost/:postid">
+        <UserPosts />
       </Route>
       <Route exact path="/myfollowingpost">
         <SubscribeUserPost />
