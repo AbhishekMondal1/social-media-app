@@ -3,9 +3,11 @@ import { UserContext } from "../../App";
 import { Link } from "react-router-dom";
 const Home = () => {
   const [data, setData] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const { state, dispatch } = useContext(UserContext);
   useEffect(() => {
-    fetch("/getsubpost", {
+    fetch(`/getsubpost?page=${page}`, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("jwt"),
       },
@@ -14,8 +16,18 @@ const Home = () => {
       .then((result) => {
         setData(result.posts);
       });
-  }, []);
-
+  }, [page]);
+  
+ window.addEventListener("scroll", () => {
+   const { scrollHeight, scrollTop, clientHeight } = document.documentElement;
+   if (scrollTop + clientHeight >= scrollHeight) {
+     console.log("bottom");
+     setPage(page + 1);
+     //setPage(prevPage => prevPage + 1)
+     console.log(page);
+   }
+ });
+   
   const likepost = (id) => {
     fetch("/like", {
       method: "put",

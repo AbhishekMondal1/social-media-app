@@ -51,7 +51,7 @@ const Signin = () => {
 
   const Anny = () => { 
     if (annyang) {
-     
+      console.log('running anny');
       // Let's define our first command. First the text we expect, and then the function it should call
       var commands = {
         "change heading": function () {
@@ -68,6 +68,9 @@ const Signin = () => {
            console.log(variable);
           let eml = document.getElementsByTagName("input")[1];
           eml.value = variable;
+        },
+        "click login": function () {
+          document.getElementsByClassName("btn")[0].click()
         }
       };
 

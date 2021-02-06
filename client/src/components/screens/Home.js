@@ -4,20 +4,33 @@ import { Link } from 'react-router-dom'
 import moment from 'moment'
 const Home = () => {
   const [data, setData] = useState([])
-  const {state,dispatch} = useContext(UserContext)
-  useEffect(()=>{
-    fetch('/allpost', {
+  const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(true)
+  const { state, dispatch } = useContext(UserContext)
+
+  useEffect(() => {
+    setLoading(true)
+    fetch(`/allpost?page=${page}`, {
       headers: {
-        "Authorization":"Bearer "+localStorage.getItem("jwt")
-      }
-    }).then(res => res.json())
-      .then(result => {
-       console.log(moment().startOf("hour").fromNow())
-        console.log(result)
-      setData(result.posts)
+        Authorization: "Bearer " + localStorage.getItem("jwt"),
+      },
     })
-  }, [])
+      .then(res => res.json())
+      .then(result => setData(result.posts))
+         //setData((prev)=>[...prev, ...data.posts])
+     setLoading(false)
+  }, [page])
   
+    window.addEventListener('scroll', () => {
+      const { scrollHeight,scrollTop, clientHeight } = document.documentElement;
+      if (scrollTop + clientHeight >= scrollHeight) {
+        console.log('bottom');
+        setPage(page + 1)
+        //setPage(prevPage => prevPage + 1)
+        console.log(page)
+      }
+    })
+   
   const likepost = (id) => {
     fetch('/like', {
       method: "put",
@@ -119,19 +132,20 @@ const Home = () => {
       })
   }
       
+
       
   return (
     <div className="home">
-      {
+     {
         data.map(item => {
           return (
             <div className="card home-card" key={item._id}>
               <h5 style={{ padding: "5px" }}>
                 <Link
                   to={
-                    "/profile/" + item.postedBy._id !== state._id
+                    item.postedBy._id !== state._id
                       ? "/profile/" + item.postedBy._id
-                      : "/profile/"
+                      : "/profile"
                   }
                 >
                   {item.postedBy.name}
@@ -153,16 +167,16 @@ const Home = () => {
                 {" "}
                 <Link
                   to={
-                    "/profile/" + item.postedBy._id !== state._id
+                    item.postedBy._id !== state._id
                       ? "/profile/" + item.postedBy._id
-                      : "/profile/"
+                      : "/profile"
                   }
                 >
                   {item.postedBy.username}
                 </Link>{" "}
               </h5>
               <div className="card-image">
-                <img src={item.photo} alt=""/>
+                <img src={item.photo} alt="" />
               </div>
               <div className="card-content">
                 <i className="material-icons">favorite</i>
@@ -194,7 +208,7 @@ const Home = () => {
                       <h6>
                         <span>
                           {moment().diff(moment(record.createdAt)) <
-                          (7 * 24 * 60 * 60 * 1000)
+                          7 * 24 * 60 * 60 * 1000
                             ? moment(record.createdAt).fromNow()
                             : moment(record.createdAt).calendar()}
                         </span>
@@ -211,16 +225,18 @@ const Home = () => {
                   <input type="text" placeholder="add a comment" />
                   <h6>
                     {moment().diff(moment(item.createdAt)) <
-                    (7 * 24 * 60 * 60 * 1000)
+                    7 * 24 * 60 * 60 * 1000
                       ? moment(item.createdAt).fromNow()
-                      : moment(item.createdAt).calendar()}
+                      : moment(item.createdAt).calendar()
+                    }
                   </h6>
                 </form>
               </div>
             </div>
           );
         })
-      }
+      }  
+      {loading ? <h1>Loading...</h1> : ""}
       
     </div>
   )
