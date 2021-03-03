@@ -6,6 +6,7 @@ import Home from "./components/screens/Home";
 import Signin from "./components/screens/Signin";
 import Profile from "./components/screens/Profile";
 import Signup from "./components/screens/Signup";
+import AdminSignup from "./components/screens/AdminSignup";
 import CreatePost from "./components/screens/CreatePost";
 import {reducer,initialState} from './reducers/userReducer'
 import UserProfile from './components/screens/UserProfile'
@@ -24,18 +25,21 @@ const Routing = () => {
     if (user) {
       dispatch({type:"USER",payload:user})
       history.push('/')
-    } else {
-      if(!history.location.pathname.startsWith('/reset'))
-        history.push('/signin')
+    }// else {
+      if(!user && !history.location.pathname.startsWith('/reset'))
+       history.push('/signin')
     
       /*if (!history.location.pathname.startsWith("/google"))
         history.push("/google");*/
-    }
+   // }
   },[])
   return (
     <Switch>
       <Route exact path="/">
         <Home />
+      </Route>
+      <Route path="/admin-signup">
+        <AdminSignup />
       </Route>
       <Route path="/signup">
         <Signup />
@@ -52,7 +56,7 @@ const Routing = () => {
       <Route path="/profile/:userid">
         <UserProfile />
       </Route>
-      <Route path="/mypost/:postid">
+      <Route path="/post/:postid">
         <UserPosts />
       </Route>
       <Route exact path="/myfollowingpost">

@@ -7,7 +7,7 @@ const Profile = () => {
   const [data, setData] = useState([state]);
     const { postid } = useParams();
   useEffect(() => {
-    fetch('/mypost', {
+    fetch('/post', {
       headers: {
         "Authorization": "Bearer " + localStorage.getItem("jwt")
       }
@@ -107,7 +107,7 @@ const Profile = () => {
           return (
             <>
               <Link
-                to={"/mypost/" + item._id}
+                to={"/post/" + item._id}
               >
                 <img
                   key={item._id}

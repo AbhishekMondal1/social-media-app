@@ -23,14 +23,26 @@ const NavBar = () => {
           >
             search
           </li>,
-          <li key="2">
-            <Link to="/profile">profile</Link>
+          <li
+            key="2"
+            className="material-icons"
+            style={{ color: "black", marginTop: "21px"}}
+          >
+            <Link to="/profile">person</Link>
           </li>,
-          <li key="3">
-            <Link to="/create">create post</Link>
+          <li
+            key="3"
+            className="material-icons"
+            style={{ color: "black", marginTop: "21px" }}
+          >
+            <Link to="/create">create</Link>
           </li>,
-          <li key="4">
-            <Link to="/myfollowingpost">My following Posts</Link>
+          <li
+            key="4"
+            className="material-icons"
+            style={{ color: "black", marginTop: "21px" }}
+          >
+            <Link to="/myfollowingpost">explore</Link>
           </li>,
           <li key="5">
             <button

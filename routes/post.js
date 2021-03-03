@@ -5,49 +5,34 @@ const mongoose = require('mongoose')
 const requireLogin = require('../middleware/requireLogin')
 const Post = mongoose.model("post")
 
-router.get('/allpost', requireLogin, (req, res) => {
- /* let pageNo = parseInt(req.query.pageNo)
-  let size = parseInt(req.query.size)
-  let query = {}
-  if (pageNo < 0 || pageNo === 0) {
-    return res.json({ error: "invalid page no"})
-  }
-  query.skip = size * (pageNo - 1)
-  query.limit = size
-  Post.count({}, (err, totalCount) => {
-    if (err) {
-     let response = {"error": true, "message":"error fetching data"}
-    }
-    Post.find({}, {}, query, (err, data) => {
-      if (err) {
-        response = {"error":true,"message":"Error fetching data"}
-      } else {
-        let totalPages = Math.ceil(totalCount / size)
-        response = {
-          "error":false,"message":data,"pages":totalPages
-        }
-        res.json(response)
-      }
-    })
-  })*/
-  const pagination = 4 // parseInt(req.query.pagination)
-  const page= req.query.page ? parseInt(req.query.page) : 1
-    Post.find()
-        .populate("postedBy", "_id name username")
-      .populate("comments.postedBy", "_id name username")
-      .sort('-createdAt')
-      .limit(page*pagination)
-      //.skip((page - 1) * pagination)
-      .then(posts => {
-        console.log('pg',page)
-        res.json({posts})
-    })
-    .catch(err=>{
-        console.log(err)
-    })    
+router.get('/allpost', requireLogin, async (req, res) => {  
+  const pagination = 4 
+  const page = req.query.page ? parseInt(req.query.page) : 1
+  const pagi = page * pagination
+  //try {
+  const totalPosts = await Post.estimatedDocumentCount()
+  const totalPages = Math.ceil(totalPosts / pagination)
+  const posts = await Post.find()
+    .populate("postedBy", "_id name username pic")
+    .populate("comments.postedBy", "_id name username")
+    .sort('-createdAt')
+    .limit(page * pagination)
+  const postsdata = []
+
+  posts.map(data => {
+    const viewerlikedpost = {viewerliked:false}
+    viewerlikedpost.viewerliked = data.likes.includes(req.user._id) ? true : false
+    const allpostdata = {...data.toObject(),...viewerlikedpost}   
+    postsdata.push(allpostdata)     
+  })
+  console.log(postsdata)  
+    res.json({
+      totalPages,
+      postsdata
+    })   
 })
 
-router.get('/mypost',requireLogin,(req,res)=>{
+router.get('/post',requireLogin,(req,res)=>{
     Post.find({postedBy:{$in:req.user._id}})
         .populate("postedBy", "_id name username")
       .populate("comments.postedBy", "_id name username")
@@ -96,7 +81,7 @@ router.post('/createpost',requireLogin,(req,res)=>{
     })
 })
 
-router.get('/mypost/:postid', requireLogin, (req, res) => {
+router.get('/post/:postid', requireLogin, (req, res) => {
   console.log(req.params.postid)
     Post.findOne({ _id: req.params.postid })
       .populate("postedBy", "_id name username")
@@ -115,12 +100,13 @@ router.put('/like', requireLogin, (req, res) => {
       req.body.postId,
       {
         $push: { likes: req.user._id },
+        $inc: {likesCount: 1}
       },
       {
-        new: true,
+        new: true
       }
     )
-      .populate("postedBy", "_id name")
+      .populate("postedBy", "_id name pic")
       .exec((err, result) => {
         if (err) { 
           return res.status(422).json({ error: err });
@@ -135,19 +121,20 @@ router.put("/unlike", requireLogin, (req, res) => {
     req.body.postId,
     {
       $pull: { likes: req.user._id },
+      $inc: { likesCount: -1 },
     },
     {
       new: true,
     }
   )
-    .populate("postedBy", "_id name")
+    .populate("postedBy", "_id name pic")
     .exec((err, result) => {
-    if (err) {
-      return res.status(422).json({ error: err });
-    } else {
-      res.json(result);
-    }
-  });
+      if (err) {
+        return res.status(422).json({ error: err });
+      } else {
+        res.json(result);
+      }
+    });
 });
 
 router.put('/comment', requireLogin, (req, res) => {

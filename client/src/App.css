@@ -49,6 +49,38 @@ a.gallary {
     margin: 26px auto;
 }
 
+.card-image i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    color: #ff1c4d;
+    transform: translate(-50%,-50%);
+    animation: favouriteGrow 1s linear;
+    -webkit-animation: favouriteGrow 1s linear;
+    -moz-animation: favouriteGrow 1s linear;
+}
+
+@keyframes favouriteGrow{
+    0%{
+        transform: scale(2);
+        opacity: 0.7;
+        text-shadow: 0.1rem 0.1rem 0.1rem black,
+        -0.1rem -0.1rem 0.1rem black;
+    }
+    50%{
+        transform: scale(7);
+        opacity: 0.7;
+        text-shadow: 0.1rem 0.1rem 0.1rem black,
+        -0.1rem -0.1rem 0.1rem black;
+    }
+    100%{
+        transform: scale(6);
+        opacity: 0.7;
+        text-shadow: 0.1rem 0.1rem 0.1rem black,
+        -0.1rem -0.1rem 0.1rem black;
+    }
+}
+
 #toast-container{
     top: 30px !important;
     right: 20px !important;

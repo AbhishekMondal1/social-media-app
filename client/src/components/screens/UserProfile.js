@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { UserContext } from "../../App";
-import {useParams} from 'react-router-dom'
+import {useParams, Link} from 'react-router-dom'
 const Profile = () => {
   const [userProfile, setProfile] = useState([])
   const [userProfileName, setProfileName] = useState([])
@@ -145,38 +145,42 @@ const Profile = () => {
                 <h6>{userProfileName.followers?.length} followers</h6>
                 <h6>{userProfileName.following?.length} following</h6>
               </div>
-              {showFollow ?
-              <button
-                className="btn waves-effect waves-light #64b5f6 blue darken-2"
-                type="submit"
-                name="action"
-                onClick={() => followUser()}
-              >
+              {showFollow ? (
+                <button
+                  className="btn waves-effect waves-light #64b5f6 blue darken-2"
+                  type="submit"
+                  name="action"
+                  onClick={() => followUser()}
+                >
                   Follow
-              </button>
-                :
-              <button
-                className="btn waves-effect waves-light #64b5f6 blue darken-2"
-                type="submit"
-                name="action"
-                onClick={() => unfollowUser()}
-              >
-                Unfollow
-              </button>
-            }
+                </button>
+              ) : (
+                <button
+                  className="btn waves-effect waves-light #64b5f6 blue darken-2"
+                  type="submit"
+                  name="action"
+                  onClick={() => unfollowUser()}
+                >
+                  Unfollow
+                </button>
+              )}
             </div>
           </div>
           <div className="gallary">
             {userProfile.map((item) => {
               return (
-                <img
+                <>
+                  <Link to={"/post/" + item._id}>
+                  <img
                   key={item._id}
                   className="item"
                   src={item.photo}
                   alt={item.title}
-                />
+                  />
+                  </Link>
+                </>
               );
-            })}
+            })}            
           </div>
         </div>
       ) : (

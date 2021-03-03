@@ -1,13 +1,15 @@
-import React,{useState, useEffect, useContext} from "react";
+import React,{useState, useEffect, useContext, useRef} from "react";
 import { UserContext } from '../../App'
 import { Link } from 'react-router-dom'
 import moment from 'moment'
 const Home = () => {
   const [data, setData] = useState([])
   const [page, setPage] = useState(1)
+  const [totalpage, setTotalPage] = useState(0)
+  const [likedpost, setLikePost] = useState(false)
   const [loading, setLoading] = useState(true)
   const { state, dispatch } = useContext(UserContext)
-
+  const likeBtn = useRef(null)
   useEffect(() => {
     setLoading(true)
     fetch(`/allpost?page=${page}`, {
@@ -16,7 +18,11 @@ const Home = () => {
       },
     })
       .then(res => res.json())
-      .then(result => setData(result.posts))
+      .then(({ postsdata, totalPages }) => {
+        setData(postsdata)
+        setTotalPage(totalPages)
+      })
+      //.then(res => setTotalPage(res.totalpg))
          //setData((prev)=>[...prev, ...data.posts])
      setLoading(false)
   }, [page])
@@ -25,12 +31,28 @@ const Home = () => {
       const { scrollHeight,scrollTop, clientHeight } = document.documentElement;
       if (scrollTop + clientHeight >= scrollHeight) {
         console.log('bottom');
-        setPage(page + 1)
+        if (page < totalpage) {
+          setPage(page + 1)
+        }
         //setPage(prevPage => prevPage + 1)
         console.log(page)
       }
     })
-   
+  
+  const likeClick = (id) => {
+    console.log('liked')
+    const favorite = document.createElement('i')
+    favorite.classList.add("material-icons");
+    favorite.innerHTML="favorite"
+    likeBtn.current.appendChild(favorite) 
+    console.log(likeBtn.current)  
+    setTimeout(() => {
+      favorite.remove()
+    },1000)
+    setLikePost(true)
+    //likeBtn.current  // appendChild(document.createElement('i'))
+  }
+  
   const likepost = (id) => {
     fetch('/like', {
       method: "put",
@@ -148,7 +170,20 @@ const Home = () => {
                       : "/profile"
                   }
                 >
-                  {item.postedBy.name}
+                  <div className="avatar">
+                    <img
+                      src={item.postedBy.pic}
+                      alt=""
+                      className="circle"
+                      style={{
+                        width: "32px",
+                        height: "32px",
+                        borderRadius: "16px",
+                        marginLeft: "5px",
+                      }}
+                    />
+                    <span>{item.postedBy.name}</span>
+                  </div>
                 </Link>
 
                 {item.postedBy._id === state._id && (
@@ -175,30 +210,40 @@ const Home = () => {
                   {item.postedBy.username}
                 </Link>{" "}
               </h5>
-              <div className="card-image">
+              <div
+                className="card-image"
+                key={item._id}
+                onClick={() => likeClick(item._id)}
+                ref={likeBtn}
+              >
                 <img src={item.photo} alt="" />
+                {/*likedpost && (<i className="material-icons">favorite</i>)*/}
               </div>
               <div className="card-content">
                 <i className="material-icons">favorite</i>
-                {item.likes.includes(state._id) ? (
+                {item.viewerliked ? (
                   <i
                     className="material-icons"
                     onClick={() => unlikepost(item._id)}
                   >
-                    thumb_down
+                    favorite
                   </i>
                 ) : (
                   <i
                     className="material-icons"
                     onClick={() => likepost(item._id)}
                   >
-                    thumb_up
+                    favorite_border
                   </i>
                 )}
-                <h6>{item.likes.length} likes</h6>
+                <i className="material-icons">comment</i>
+                <h6>{item.likesCount} likes</h6>
                 <h6>{item.title}</h6>
-                <p>{item.body}</p>
-                {item.comments.map((record) => {
+                <p>
+                  <span>{item.postedBy.name}</span>
+                  &nbsp;{item.body}
+                </p>
+                {item.comments.slice(0, 2).map((record) => {
                   return (
                     <h6 key={record._id}>
                       <span style={{ fontWeight: "500" }}>
@@ -216,6 +261,9 @@ const Home = () => {
                     </h6>
                   );
                 })}
+                <Link to={"/mypost/" + item._id}>
+                  <p>view all {item.comments.length} comments</p>
+                </Link>
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -227,8 +275,7 @@ const Home = () => {
                     {moment().diff(moment(item.createdAt)) <
                     7 * 24 * 60 * 60 * 1000
                       ? moment(item.createdAt).fromNow()
-                      : moment(item.createdAt).calendar()
-                    }
+                      : moment(item.createdAt).calendar()}
                   </h6>
                 </form>
               </div>

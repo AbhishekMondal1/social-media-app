@@ -140,7 +140,7 @@ const Home = () => {
       {data.map((item) => {
         return (
           <div className="card home-card" key={item._id}>
-            <h5 style = {{padding:"5px"}}>
+            <h5 style={{ padding: "5px" }}>
               <Link
                 to={
                   "/profile/" + item.postedBy._id !== state._id
@@ -168,7 +168,7 @@ const Home = () => {
             </div>
             <div className="card-content">
               <i className="material-icons">favorite</i>
-              {item.likes.includes(state._id) ? (
+              {item.viewerliked ? (
                 <i
                   className="material-icons"
                   onClick={() => unlikepost(item._id)}
@@ -183,7 +183,7 @@ const Home = () => {
                   thumb_up
                 </i>
               )}
-              <h6>{item.likes.length} likes</h6>
+              <h6>{item.likesCount} likes</h6>
               <h6>{item.title}</h6>
               <p>{item.body}</p>
               {item.comments.map((record) => {

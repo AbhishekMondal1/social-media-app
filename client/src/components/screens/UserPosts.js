@@ -9,7 +9,7 @@ const UserPosts = () => {
     const { postid } = useParams()    
 
     useEffect(() => {
-        fetch(`/mypost/${postid}`, {
+        fetch(`/post/${postid}`, {
             method: "GET",
             headers: {
                 "Authorization": "Bearer " + localStorage.getItem("jwt")
@@ -129,7 +129,7 @@ const UserPosts = () => {
         setData(newData);
       });
   };
-      // error USERNAME DATA.ID
+
   return (
     <>{data._id === undefined ? "Loading" : 
       <div className="card home-card" key={data._id}>
@@ -160,7 +160,7 @@ const UserPosts = () => {
         </div>
         <div className="card-content">
           <i className="material-icons">favorite</i>
-          {data.likes.includes(state._id) ? (
+          {data.viewerliked? (
             <i className="material-icons" onClick={() => unlikepost(data._id)}>
               thumb_down
             </i>
@@ -169,7 +169,7 @@ const UserPosts = () => {
                 thumb_up
               </i>
             )}
-          <h6>{data.likes.length} likes</h6>
+          <h6>{data.likesCount} likes</h6>
           <h6>{data.title}</h6>
           <p>{data.body}</p>
           {data.comments.map((record) => {
