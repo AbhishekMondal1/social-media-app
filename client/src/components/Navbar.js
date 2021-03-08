@@ -44,7 +44,14 @@ const NavBar = () => {
           >
             <Link to="/myfollowingpost">explore</Link>
           </li>,
-          <li key="5">
+          <li
+            key="5"
+            className="material-icons"
+            style={{ color: "black", marginTop: "21px" }}
+          >
+            <Link to="/messages">message</Link>
+          </li>,
+          <li key="6">
             <button
               className="btn #880e4f pink darken-4"
               onClick={() => {

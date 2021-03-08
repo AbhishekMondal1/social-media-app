@@ -102,6 +102,14 @@ a.gallary {
     -webkit-backdrop-filter: blur(4.0px);
     border-radius: 10px;
     color: rgb(247, 119, 60);
+    caret-color: #23f1be;
+    /*border: 7px solid;
+    border-image: linear-gradient(135deg,
+        #ff0000 0%,
+        #fa8517 20%,
+        #b6fa17 50%,
+        #17fa22 70%,
+        #ff00a8 100%)1;*/
 }
 
 .mycard{

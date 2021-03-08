@@ -5,7 +5,7 @@ const User = mongoose.model('User')
 const bcrypt = require('bcrypt')
 const crypto = require('crypto')
 const jwt = require('jsonwebtoken')
-const {JWT_SECRET} = require('../config/keys')
+const {JWT_SECRET, SENDGRID} = require('../config/keys')
 const requirelogin = require('../middleware/requireLogin')
 const nodemailer = require('nodemailer')
 const sendgridTranspost = require('nodemailer-sendgrid-transport')
@@ -14,7 +14,7 @@ const { log } = require('console')
 
 const transposter = nodemailer.createTransport(sendgridTranspost({
     auth: {
-        api_key: "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"
+        api_key: "SENDGRID_KEY"
     }
 }
 ))

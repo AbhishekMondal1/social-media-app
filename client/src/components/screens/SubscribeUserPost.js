@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { UserContext } from "../../App";
 import { Link } from "react-router-dom";
+import moment from 'moment'
 const Home = () => {
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
@@ -14,7 +15,7 @@ const Home = () => {
     })
       .then((res) => res.json())
       .then((result) => {
-        setData(result.posts);
+        setData(result.postsdata);
       });
   }, [page]);
   
@@ -143,12 +144,25 @@ const Home = () => {
             <h5 style={{ padding: "5px" }}>
               <Link
                 to={
-                  "/profile/" + item.postedBy._id !== state._id
+                  item.postedBy._id !== state._id
                     ? "/profile/" + item.postedBy._id
                     : "/profile/"
                 }
               >
-                {item.postedBy.name}
+                <div className="avatar">
+                  <img
+                    src={item.postedBy.pic}
+                    alt=""
+                    className="circle"
+                    style={{
+                      width: "32px",
+                      height: "32px",
+                      borderRadius: "16px",
+                      marginLeft: "5px",
+                    }}
+                  />
+                  <span>{item.postedBy.name}</span>
+                </div>
               </Link>
 
               {item.postedBy._id == state._id && (
@@ -163,6 +177,17 @@ const Home = () => {
                 </i>
               )}
             </h5>
+            <h5>
+              <Link
+                to={
+                  item.postedBy._id !== state._id
+                    ? "/profile/" + item.postedBy._id
+                    : "/profile"
+                }
+              >
+                {item.postedBy.username}
+              </Link>
+            </h5>
             <div className="card-image">
               <img src={item.photo} />
             </div>
@@ -173,29 +198,44 @@ const Home = () => {
                   className="material-icons"
                   onClick={() => unlikepost(item._id)}
                 >
-                  thumb_down
+                  favorite
                 </i>
               ) : (
                 <i
                   className="material-icons"
                   onClick={() => likepost(item._id)}
                 >
-                  thumb_up
+                  favorite_border
                 </i>
               )}
               <h6>{item.likesCount} likes</h6>
               <h6>{item.title}</h6>
-              <p>{item.body}</p>
-              {item.comments.map((record) => {
+              <p>
+                <span>{item.postedBy.name}</span>
+                &nbsp;
+                {item.body}
+              </p>
+              {item.comments.slice(0, 2).map((record) => {
                 return (
                   <h6 key={record._id}>
                     <span style={{ fontWeight: "500" }}>
                       {record.postedBy.name}
                     </span>{" "}
                     {record.text}
+                    <h6>
+                      <span>
+                        {moment().diff(moment(record.createdAt)) <
+                        7 * 24 * 60 * 60 * 1000
+                          ? moment(record.createdAt).fromNow()
+                          : moment(record.createdAt).calendar()}
+                      </span>
+                    </h6>
                   </h6>
                 );
               })}
+              <Link to={"/post/" + item._id}>
+                <p>view all {item.comments.length} comments</p>
+              </Link>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -203,6 +243,12 @@ const Home = () => {
                 }}
               >
                 <input type="text" placeholder="add a comment" />
+                <h6>
+                  {moment().diff(moment(item.createdAt)) <
+                  7 * 24 * 60 * 60 * 1000
+                    ? moment(item.createdAt).fromNow()
+                    : moment(item.createdAt).calendar()}
+                </h6>
               </form>
             </div>
           </div>

@@ -28,14 +28,21 @@ const Home = () => {
   }, [page])
   
     window.addEventListener('scroll', () => {
-      const { scrollHeight,scrollTop, clientHeight } = document.documentElement;
-      if (scrollTop + clientHeight >= scrollHeight) {
-        console.log('bottom');
-        if (page < totalpage) {
-          setPage(page + 1)
+      const { scrollHeight, scrollTop, clientHeight } = document.documentElement;
+      let maxpage = 0
+      if (page == 4) {
+        maxpage = 1
+      }
+      if (page < totalpage && maxpage == 0) {
+        if (scrollTop + clientHeight >= scrollHeight) {
+          console.log('bottom');
+          if (page <= totalpage) {
+            setPage(page + 1)
+            console.log('pages', page)
+          }
+          //setPage(prevPage => prevPage + 1)
+          // console.log('page',page)
         }
-        //setPage(prevPage => prevPage + 1)
-        console.log(page)
       }
     })
   
@@ -199,7 +206,6 @@ const Home = () => {
                 )}
               </h5>
               <h5>
-                {" "}
                 <Link
                   to={
                     item.postedBy._id !== state._id
@@ -208,7 +214,7 @@ const Home = () => {
                   }
                 >
                   {item.postedBy.username}
-                </Link>{" "}
+                </Link>
               </h5>
               <div
                 className="card-image"
@@ -217,7 +223,6 @@ const Home = () => {
                 ref={likeBtn}
               >
                 <img src={item.photo} alt="" />
-                {/*likedpost && (<i className="material-icons">favorite</i>)*/}
               </div>
               <div className="card-content">
                 <i className="material-icons">favorite</i>
@@ -261,7 +266,7 @@ const Home = () => {
                     </h6>
                   );
                 })}
-                <Link to={"/mypost/" + item._id}>
+                <Link to={"/allcomments/" + item._id}>
                   <p>view all {item.comments.length} comments</p>
                 </Link>
                 <form
