@@ -9,27 +9,37 @@ const { urlencoded, json } = require('body-parser')
 const passport = require('passport')
 const cookieSession = require("cookie-session");
 const { log } = require('console')
-
+const run = require('./admin/adminServer')
 app.use(cors())
-mongoose.connect(MONGOURI,{
-    useNewUrlParser: true,
-    useUnifiedTopology:true
-})
-mongoose.connection.on('connected',()=>{
-    console.log("Mongoose CONNECTED!!")
-})
-mongoose.connection.on('error',(err)=>{
-    console.log("err connection",err)
-})
 
-require('./models/user')
-require('./models/comment')
-require('./models/post')
-app.use(express.json())
-app.use(require('./routes/auth'))
-app.use(require('./routes/post'))
-app.use(require('./routes/user'))
+const dbconnection = mongoose.connect(MONGOURI, {
+  useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
+  mongoose.connection.on('connected', () => {
+    console.log("Mongoose CONNECTED!!")
+  })
+  mongoose.connection.on('error', (err) => {
+    console.log("err connection", err)
+  })
+  
+
+  
+  
+  
+  require('./models/user')
+  require('./models/comment')
+  require('./models/post')
+  app.use(express.json())
+  app.use(require('./routes/auth'))
+  app.use(require('./routes/post'))
+  app.use(require('./routes/user'))
+  const adminRouter = require('./admin/admin.router')
+app.use('/admin', adminRouter)
+//app.use(require('./routes/adminroutes'))
 require('./middleware/passport_setup')
+
+//app.use(adminBro.options.rootPath, adminrouter);
 /*
 app.use(bodyParser,urlencoded({extended:false}))
 
@@ -134,6 +144,8 @@ if (process.env.NODE_ENV == "production") {
   })
 }
 
-app.listen(PORT,()=>{
+run()
+
+app.listen(PORT, () => {  
     console.log("Server is Running",PORT); 
 })

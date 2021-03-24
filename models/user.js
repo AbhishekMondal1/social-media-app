@@ -28,6 +28,7 @@ const userSchema = new mongoose.Schema({
     expireToken: Date,
     followers: [{type:ObjectId,ref:"User"}],
     following: [{type:ObjectId,ref:"User"}]
-})
+},{timestamps:true}
+)
 
-mongoose.model("User",userSchema)
+module.exports = mongoose.model("User",userSchema)
