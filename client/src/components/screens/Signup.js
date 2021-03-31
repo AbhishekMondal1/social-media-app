@@ -11,7 +11,9 @@ const Signup = () => {
   const [email, setEmail] = useState("")
   const [username, setUsername] = useState("")
   const [image, setImage] = useState("")
-  const [url, setUrl] = useState("")
+  const [url, setUrl] = useState(
+    "https://res.cloudinary.com/cloudaditya/image/upload/v1610609840/noimages_r1ckl0.png"
+  );
   useEffect(()=>{
       if(url){
         uploadFields()

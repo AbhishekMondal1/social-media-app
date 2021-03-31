@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoStore = require("connect-mongodb-session")(session);
-
+const User = require('../models/user')
 /**
  * @param {AdminBro} admin
  * @return {express.Router} router
@@ -24,7 +24,9 @@ const buildAdminRouter = (admin) => {
       if (user) {
         const matched = await bcrypt.compare(password, user.password)
         if (matched) {
-          return user
+          if (user.role === 'admin') {
+            return user
+          }
         }
       }
       return false

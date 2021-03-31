@@ -24,6 +24,10 @@ const userSchema = new mongoose.Schema({
         type:String,
         default:"https://res.cloudinary.com/cloudaditya/image/upload/v1610609840/noimages_r1ckl0.png"
     },
+    role: {
+        type: String,
+        default: "member"  
+    },
     resetToken: String,
     expireToken: Date,
     followers: [{type:ObjectId,ref:"User"}],

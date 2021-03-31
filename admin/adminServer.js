@@ -30,29 +30,33 @@ const run = async () => {
       {
         resource: Post,
         options: {
-          properties: {
-
-          }
-        }
-      }
+          properties: {},
+        },
+      },
     ],
     rootPath: "/admin",
     branding: {
       companyName: "Connect ALL",
       theme: {
         colors: {
-          primary100: "#ff0000",
-          accent: "#fff",
-          filterBg: "#21e6c1",
-          bg: "#121212",
-          white: "#151515",
-          grey100: "#ff5733",
-          hoverBg: "#d60a89",
+          primary100: "#ff5733",
+          primary80: '#f638dc',
+          primary60: '#9a0f98',
+          primary40: '#ff0000',
+          primary20: '#ff0000',
+          accent: "#45056e",
+          white: "#160f30",
+          grey100: "#fff",
+          grey80: "#fff",
+          grey60: '#fff',
+          grey40: '#fff',
+          grey20: '#7045af',
+          bg: "#2b3595",
+          hoverBg: "#fd7014",
           info: "#881122",
-          highlight: "#0055ff",
-          infoLight: "#000",
+          filterBg: '#892cdc',
         },
-        font: "Cursive",
+        font: "rubik,arial"
       },
     },
     dashboard: {

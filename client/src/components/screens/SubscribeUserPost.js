@@ -142,6 +142,7 @@ const Home = () => {
         return (
           <div className="card home-card" key={item._id}>
             <h5 style={{ padding: "5px" }}>
+              <div>
               <Link
                 to={
                   item.postedBy._id !== state._id
@@ -161,32 +162,10 @@ const Home = () => {
                       marginLeft: "5px",
                     }}
                   />
-                  <span>{item.postedBy.name}</span>
+                  <span className="uname">{item.postedBy.username}</span>
                 </div>
-              </Link>
-
-              {item.postedBy._id == state._id && (
-                <i
-                  className="material-icons"
-                  style={{
-                    float: "right",
-                  }}
-                  onClick={() => deletePost(item._id)}
-                >
-                  delete
-                </i>
-              )}
-            </h5>
-            <h5>
-              <Link
-                to={
-                  item.postedBy._id !== state._id
-                    ? "/profile/" + item.postedBy._id
-                    : "/profile"
-                }
-              >
-                {item.postedBy.username}
-              </Link>
+                </Link>
+              </div>              
             </h5>
             <div className="card-image">
               <img src={item.photo} />

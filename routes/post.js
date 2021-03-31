@@ -32,33 +32,63 @@ router.get('/allpost', requireLogin, async (req, res) => {
     })   
 })
 
-router.get('/post',requireLogin,(req,res)=>{
-    Post.find({postedBy:{$in:req.user._id}})
-        .populate("postedBy", "_id name username")
-      .populate("comments.postedBy", "_id name username")
-      .sort('-createdAt')
-    .then(posts=>{
-        res.json({posts})
-    })
-    .catch(err=>{
-        console.log(err)
-    })    
+router.get('/allcomments/:postid', requireLogin, async (req, res) => {  
+  const pagination = 5 
+  console.log(req.query.page)
+  const page = req.query.page ? parseInt(req.query.page) : 1
+  const pagi = page * pagination
+  //try {
+  const totalPosts = await Post.estimatedDocumentCount()
+  const totalPages = Math.ceil(totalPosts / pagination)
+    const comments = await Post.findOne({ _id: req.params.postid },{"comments":{"$slice":pagi}})
+    .populate("postedBy", "_id name username")
+    .populate("comments.postedBy", "_id name username pic")
+    .sort('-createdAt')
+      .limit(page * pagination)
+      console.log('com',comments);
+      res.json({
+          totalPages,
+          comments,
+        })
+         
+  console.log('cm',comments)  
+  
 })
 
-router.get('/getsubpost', requireLogin, (req, res) => {
-    const pagination = 1; // parseInt(req.query.pagination)
+router.get('/post',requireLogin, async (req,res)=>{
+  const posts = await Post.find({postedBy:{$in:req.user._id}})
+    .populate("postedBy", "_id name username pic")
+    .populate("comments.postedBy", "_id name username")
+    .sort('-createdAt')
+  const postsdata = []
+
+  posts.map(data => {
+    const viewerlikedpost = { viewerliked: false };
+    viewerlikedpost.viewerliked = data.likes.includes(req.user._id) ? true : false;
+    const allpostdata = { ...data.toObject(), ...viewerlikedpost }
+    postsdata.push(allpostdata)
+  })    
+    res.json({postsdata})   
+  })
+  
+  router.get('/getsubpost', requireLogin, async (req, res) => {
+    const pagination = 1; 
     const page = req.query.page ? parseInt(req.query.page) : 1;
-    Post.find({postedBy:{$in:req.user.following}})
-        .populate("postedBy", "_id name")
-      .populate("comments.postedBy", "_id name")
-      .sort("-createdAt")
-      .limit(page*pagination)
-    .then(posts=>{
-        res.json({posts})
+    const posts = await Post.find({ postedBy: { $in: req.user.following } })
+    .populate("postedBy", "_id name username pic")
+    .populate("comments.postedBy", "_id name username")
+    .sort("-createdAt")
+    .limit(page * pagination)
+    const postsdata = []
+
+    posts.map(data => {
+      const viewerlikedpost = { viewerliked: false };
+      viewerlikedpost.viewerliked = data.likes.includes(req.user._id) ? true : false;
+      const allpostdata = { ...data.toObject(), ...viewerlikedpost }
+      postsdata.push(allpostdata)
     })
-    .catch(err=>{
-        console.log(err)
-    })    
+    console.log(postsdata)
+  res.json({postsdata})
 })
 
 router.post('/createpost',requireLogin,(req,res)=>{

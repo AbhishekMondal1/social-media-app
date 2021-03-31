@@ -170,52 +170,45 @@ const Home = () => {
           return (
             <div className="card home-card" key={item._id}>
               <h5 style={{ padding: "5px" }}>
-                <Link
-                  to={
-                    item.postedBy._id !== state._id
-                      ? "/profile/" + item.postedBy._id
-                      : "/profile"
-                  }
-                >
-                  <div className="avatar">
-                    <img
-                      src={item.postedBy.pic}
-                      alt=""
-                      className="circle"
-                      style={{
-                        width: "32px",
-                        height: "32px",
-                        borderRadius: "16px",
-                        marginLeft: "5px",
-                      }}
-                    />
-                    <span>{item.postedBy.name}</span>
-                  </div>
-                </Link>
-
-                {item.postedBy._id === state._id && (
-                  <i
-                    className="material-icons"
-                    style={{
-                      float: "right",
-                    }}
-                    onClick={() => deletePost(item._id)}
+                <div>
+                  <Link
+                    to={
+                      item.postedBy._id !== state._id
+                        ? "/profile/" + item.postedBy._id
+                        : "/profile"
+                    }
                   >
-                    delete
-                  </i>
-                )}
+                    
+                      <img
+                        src={item.postedBy.pic}
+                        alt=""
+                        className="circle"
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          borderRadius: "16px",
+                          marginLeft: "5px",
+                        }}
+                      />
+                      <span className="uname">{item.postedBy.username} </span>
+                    
+                  </Link>
+                  <span>
+                    {item.postedBy._id === state._id && (
+                      <i
+                        className="material-icons"
+                        style={{
+                          float: "right",
+                        }}
+                        onClick={() => deletePost(item._id)}
+                      >
+                        delete
+                      </i>
+                    )}
+                  </span>
+                </div>
               </h5>
-              <h5>
-                <Link
-                  to={
-                    item.postedBy._id !== state._id
-                      ? "/profile/" + item.postedBy._id
-                      : "/profile"
-                  }
-                >
-                  {item.postedBy.username}
-                </Link>
-              </h5>
+
               <div
                 className="card-image"
                 key={item._id}
@@ -225,7 +218,6 @@ const Home = () => {
                 <img src={item.photo} alt="" />
               </div>
               <div className="card-content">
-                <i className="material-icons">favorite</i>
                 {item.viewerliked ? (
                   <i
                     className="material-icons"
@@ -241,7 +233,9 @@ const Home = () => {
                     favorite_border
                   </i>
                 )}
-                <i className="material-icons">comment</i>
+                <Link to={"/allcomments/" + item._id}>
+                  <i className="material-icons">comment</i>
+                </Link>
                 <h6>{item.likesCount} likes</h6>
                 <h6>{item.title}</h6>
                 <p>

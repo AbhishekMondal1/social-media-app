@@ -51,7 +51,7 @@ const NavBar = () => {
           >
             <Link to="/messages">message</Link>
           </li>,
-          <li key="6">
+          <li key="5">
             <button
               className="btn #880e4f pink darken-4"
               onClick={() => {

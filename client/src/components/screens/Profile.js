@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import {Link,useParams} from 'react-router-dom'
-import {UserContext} from '../../App'
+import { UserContext } from '../../App'
 const Profile = () => {
   const [mypics, setPics] = useState([])  
   const {state,dispatch} = useContext(UserContext)
@@ -14,8 +14,7 @@ const Profile = () => {
     }).then(res => res.json())
       .then(result => {
         console.log(state)
-        console.log("result",result);
-        setPics(result.posts)
+        setPics(result.postsdata)
     })
   }, [])
   
@@ -62,16 +61,30 @@ const Profile = () => {
       >
         <div>
           <img
-            style={{ width: "160px", height: "160px", borderRadius: "80px" }}
-            src={state?state.pic:"loading"}
+            style={{ width: "160px", height: "160px", borderRadius: "80px", objectFit:"cover" }}
+            src={state ? state.pic : "loading"}
           />
         </div>
         <div>
-          <h4>{state ? state.name : "loading"}</h4>
-          <h4>{state ? state.email : "loading"}</h4>
-          <h4>{state ? state.username : "loading"}</h4>
-          <h5>{state ? state.bio : "loading"}</h5>
-                   
+          <h4 className="pname" style={{textDecoration:"uppercase", fontSize:"30px"}}>{state ? state.name : "loading"}</h4>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              width: "108%",
+            }}
+          >
+            <h6 className="">{mypics ? mypics.length : "0"} posts</h6>
+            <h6 className="">
+              {state ? state.followers.length : "0"} followers
+            </h6>
+            <h6 className="">
+              {state ? state.following.length : "0"} folllowing
+            </h6>
+          </div>
+          <h4 className="uname">{state ? state.username : "loading"}</h4>
+          <h5 className="ubio">{state ? state.bio : "loading"}</h5>
+
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -80,35 +93,14 @@ const Profile = () => {
           >
             <input type="text" placeholder="add bio" />
           </form>
-          <h5
-            key="1"
-            data-target="modal1"
-            className="large material-icons modal-trigger"
-            style={{ color: "black" }}
-          >
-            edit
-          </h5>
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              width: "108%",
-            }}
-          >
-            <h6>{mypics ? mypics.length:"0"} posts</h6>
-            <h6>{state ? state.followers.length : "0"} followers</h6>
-            <h6>{state ? state.following.length : "0"} folllowing</h6>
-          </div>
+          
         </div>
       </div>
       <div className="gallary">
         {mypics.map((item) => {
           return (
             <>
-              <Link
-                to={"/post/" + item._id}
-              >
+              <Link to={"/post/" + item._id}>
                 <img
                   key={item._id}
                   className="item"

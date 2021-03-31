@@ -3,111 +3,28 @@ import { UserContext } from "../../App";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import moment from "moment";
-const UserPosts = () => {
-    const [data, setData] = useState([])
-    const { state, dispatch } = useContext(UserContext)
-    const { postid } = useParams()    
+const UserPostAdmin = () => {
+  const [data, setData] = useState([]);
+  const { state, dispatch } = useContext(UserContext);
+  const { postid } = useParams();
 
-    useEffect(() => {
-        fetch(`/post/${postid}`, {
-            method: "GET",
-            headers: {
-                "Authorization": "Bearer " + localStorage.getItem("jwt")
-            }
-        }).then(res => res.json())
-            .then(result => { 
-                //console.log(moment().startOf("hour").fromNow())
-                console.log(result.mypost)
-              setData(result.mypost)
-              console.log(data._id)
-            })
-    }, []);
-
-  const likepost = (id) => {
-    fetch("/like", {
-      method: "put",
+  useEffect(() => {
+    fetch(`/post/${postid}`, {
+      method: "GET",
       headers: {
-        "Content-Type": "application/json",
         Authorization: "Bearer " + localStorage.getItem("jwt"),
       },
-      body: JSON.stringify({
-        postId: id,
-      }),
     })
       .then((res) => res.json())
       .then((result) => {
-        //console.log(result)
-        const newData = data.map((item) => {
-          if (item._id === result._id) {
-            return result;
-          } else {
-            return item;
-          }
-        });
-        console.log(newData);
-        setData(newData);
-      })
-      .catch((err) => {
-        console.log(err);
+        //console.log(moment().startOf("hour").fromNow())
+        console.log(result.mypost);
+        setData(result.mypost);
+        console.log(data._id);
       });
-  };
-  const unlikepost = (id) => {
-    fetch("/unlike", {
-      method: "put",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + localStorage.getItem("jwt"),
-      },
-      body: JSON.stringify({
-        postId: id,
-      }),
-    })
-      .then((res) => res.json())
-      .then((result) => {
-        //console.log(result)
-        const newData = data.map((item) => {
-          if (item._id === result._id) {
-            return result;
-          } else {
-            return item;
-          }
-        });
-        console.log(newData);
-        setData(newData);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
+  }, []);
 
-  const makeComment = (text, postId) => {
-    fetch("/comment", {
-      method: "put",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + localStorage.getItem("jwt"),
-      },
-      body: JSON.stringify({
-        text,
-        postId,
-      }),
-    })
-      .then((res) => res.json())
-      .then((result) => {
-        const newData = data.map((item) => {
-          if (item._id === result._id) {
-            return result;
-          } else {
-            return item;
-          }
-        });
-        //console.log(newData)
-        setData(newData);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
+
 
   const deletePost = (postid) => {
     fetch(`/deletepost/${postid}`, {
@@ -129,6 +46,31 @@ const UserPosts = () => {
         setData(newData);
       });
   };
+
+  const reportPost = (postid) => {
+   fetch(`/report/${postid}`, {
+     method: "put",
+     headers: {
+       "Content-Type": "application/json",
+       Authorization: "Bearer " + localStorage.getItem("jwt"),
+     },
+   })
+     .then((res) => res.json())
+     .then((result) => {
+       const newData = data.map((item) => {
+         if (item._id === result._id) {
+           return result;
+         } else {
+           return item;
+         }
+       });
+       //console.log(newData)
+       setData(newData);
+     })
+     .catch((err) => {
+       console.log(err);
+     });
+}
 
   return (
     <>
@@ -152,11 +94,11 @@ const UserPosts = () => {
                     marginLeft: "5px",
                   }}
                 />
-                <span>{data.postedBy.username}</span>
+                <span>{data.postedBy.name}</span>
               </div>
             </Link>
 
-            {data.postedBy._id === state._id && (
+            {(
               <i
                 className="material-icons"
                 style={{
@@ -177,19 +119,7 @@ const UserPosts = () => {
             <img src={data.photo} alt="" />
           </div>
           <div className="card-content">
-            <i className="material-icons">favorite</i>
-            {data.viewerliked ? (
-              <i
-                className="material-icons"
-                onClick={() => unlikepost(data._id)}
-              >
-                favourite
-              </i>
-            ) : (
-              <i className="material-icons" onClick={() => likepost(data._id)}>
-                favourite_border
-              </i>
-            )}
+           
             <h6>{data.likesCount} likes</h6>
             <h6>{data.title}</h6>
             <p>
@@ -217,24 +147,16 @@ const UserPosts = () => {
             <Link to={"/allcomments/" + data._id}>
               <p>view all {data.comments.length} comments</p>
             </Link>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                makeComment(e.target[0].value, data._id);
-              }}
-            >
-              <input type="text" placeholder="add a comment" />
               <h6>
                 {moment().diff(moment(data.createdAt)) < 7 * 24 * 60 * 60 * 1000
                   ? moment(data.createdAt).fromNow()
                   : moment(data.createdAt).calendar()}
               </h6>
-            </form>
           </div>
         </div>
       )}{" "}
     </>
   );
-}
+};
 
-export default UserPosts;
+export default UserPostAdmin;

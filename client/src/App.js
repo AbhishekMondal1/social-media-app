@@ -6,7 +6,6 @@ import Home from "./components/screens/Home";
 import Signin from "./components/screens/Signin";
 import Profile from "./components/screens/Profile";
 import Signup from "./components/screens/Signup";
-import AdminSignup from "./components/screens/AdminSignup";
 import CreatePost from "./components/screens/CreatePost";
 import {reducer,initialState} from './reducers/userReducer'
 import UserProfile from './components/screens/UserProfile'
@@ -38,9 +37,6 @@ const Routing = () => {
     <Switch>
       <Route exact path="/">
         <Home />
-      </Route>
-      <Route path="/admin-signup">
-        <AdminSignup />
       </Route>
       <Route path="/signup">
         <Signup />
