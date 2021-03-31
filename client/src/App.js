@@ -15,7 +15,7 @@ import Reset from './components/screens/Reset';
 import NewPassword from './components/screens/NewPassword'
 import UserPosts from "./components/screens/UserPosts";
 import Comments from "./components/screens/Comments";
-import Messenger from './components/Messenger';
+//import Messenger from './components/Messenger';
 //import UserPosts from './components/screens/UserPosts'
 export const UserContext = createContext()
 const Routing = () => {
@@ -71,9 +71,6 @@ const Routing = () => {
       </Route>
       <Route exact path="/reset/:token">
         <NewPassword />
-      </Route>
-      <Route exact path="/messages">
-        <Messenger />
       </Route>
     </Switch>
   );

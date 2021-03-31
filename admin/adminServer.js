@@ -55,9 +55,6 @@ const run = async () => {
         font: "Cursive",
       },
     },
-    dashboard: {
-      component: AdminBro.bundle("./my-dashboard"),
-    },
   });
   const router = buildAdminRouter(admin);
   app.use(admin.options.rootPath, router);

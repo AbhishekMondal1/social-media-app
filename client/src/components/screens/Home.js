@@ -1,4 +1,5 @@
 import React,{useState, useEffect, useContext, useRef} from "react";
+import Stories from './Stories';
 import { UserContext } from '../../App'
 import { Link } from 'react-router-dom'
 import moment from 'moment'
@@ -165,6 +166,7 @@ const Home = () => {
       
   return (
     <div className="home">
+      <Stories/>
      {
         data.map(item => {
           return (
