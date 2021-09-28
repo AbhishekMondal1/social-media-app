@@ -15,6 +15,7 @@ import NewPassword from './components/screens/NewPassword'
 import UserPosts from "./components/screens/UserPosts";
 import Comments from "./components/screens/Comments";
 import Messenger from './components/Messenger';
+import ChatMessenger from "./components/screens/ChatMessenger/ChatMessenger";
 //import UserPosts from './components/screens/UserPosts'
 export const UserContext = createContext()
 const Routing = () => {
@@ -70,6 +71,9 @@ const Routing = () => {
       </Route>
       <Route exact path="/messages">
         <Messenger />
+      </Route>
+      <Route exact path="/chatmessages">
+        <ChatMessenger />
       </Route>
     </Switch>
   );
