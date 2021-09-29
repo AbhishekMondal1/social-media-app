@@ -15,7 +15,7 @@ import NewPassword from './components/screens/NewPassword'
 import UserPosts from "./components/screens/UserPosts";
 import Comments from "./components/screens/Comments";
 import Messenger from './components/Messenger';
-import ChatMessenger from "./components/screens/ChatMessenger/ChatMessenger";
+import ChatMessenger from "./components/screens/chatMessenger/ChatMessenger";
 //import UserPosts from './components/screens/UserPosts'
 export const UserContext = createContext()
 const Routing = () => {

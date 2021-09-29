@@ -51,7 +51,14 @@ const NavBar = () => {
           >
             <Link to="/messages">message</Link>
           </li>,
-          <li key="5">
+          <li
+            key="6"
+            className="material-icons"
+            style={{ color: "black", marginTop: "21px" }}
+          >
+            <Link to="/chatmessages">message</Link>
+          </li>,
+          <li key="7">
             <button
               className="btn #880e4f pink darken-4"
               onClick={() => {
@@ -122,7 +129,7 @@ const NavBar = () => {
                     M.Modal.getInstance(searchModal.current).close()
                     setSearch("")
                   }}>                 
-                    <li className="collection-item">{item.email}</li> 
+                    <li className="collection-item">{item.username}</li> 
                   </Link>
                 );
               })}
