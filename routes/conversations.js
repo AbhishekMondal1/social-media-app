@@ -10,6 +10,7 @@ router.post("/", async (req, res) => {
     });
 
     try {
+        console.log(req.body.senderId)
         const savedConversation = await newConversation.save();
         res.status(200).json(savedConversation);
     } catch (err) {

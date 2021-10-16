@@ -26,7 +26,8 @@ const dbconnection = mongoose.connect(MONGOURI, {
 
   
   
-  
+  const conversationRoute = require('./routes/conversations')
+  const messageRoute = require('./routes/messages')
   require('./models/user')
   require('./models/comment')
   require('./models/post')
@@ -34,6 +35,9 @@ const dbconnection = mongoose.connect(MONGOURI, {
   app.use(require('./routes/auth'))
   app.use(require('./routes/post'))
   app.use(require('./routes/user'))
+  app.use("/conversation", conversationRoute)
+  app.use("/messages", messageRoute)
+  app.use(require('./routes/messages'))
   const adminRouter = require('./admin/admin.router')
 app.use('/admin', adminRouter)
 //app.use(require('./routes/adminroutes'))
