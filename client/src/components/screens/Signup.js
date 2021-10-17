@@ -44,14 +44,6 @@ const Signup = () => {
           M.toast({ html: "Invalid Email", classes: "#ff1744 red accent-3" });
           return
     }
-    if (
-      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/.test(
-        password
-      )
-    ) {
-      M.toast({ html: "<h6>password must include @,#,% or &special characters<div>atleast 1 uppercase, lowercase, number</div>", classes: "#ff1744 red accent-3" });
-      return;
-    }
       fetch("/signup", {
         method: "post",
         headers: {

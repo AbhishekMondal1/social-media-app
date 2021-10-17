@@ -18,17 +18,15 @@
 
 .message-text{
     padding: 10px;
-    border-radius: 10px;
+    border-radius: 20px;
     background-color: #1877f2;
     color: #fff;
     max-width: 300px;
-    box-shadow: 2px 2px 2px rgb(44, 77, 126);
 }
 
 .message-bottom{
     font-size: 12px;
     margin-top: 10px;
-    margin-left: 40px;
 }
 
 .message.own{
