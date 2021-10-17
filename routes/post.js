@@ -13,7 +13,7 @@ router.get('/allpost', requireLogin, async (req, res) => {
   const totalPosts = await Post.estimatedDocumentCount()
   const totalPages = Math.ceil(totalPosts / pagination)
   const posts = await Post.find()
-    .populate("postedBy", "_id name username pic")
+    .populate("postedBy", "_id username pic")
     .populate("comments.postedBy", "_id name username")
     .sort('-createdAt')
     .limit(page * pagination)
