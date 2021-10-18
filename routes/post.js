@@ -1,10 +1,10 @@
-const { response } = require('express')
 const express = require('express')
 const router = express.Router()
 const mongoose = require('mongoose')
 const requireLogin = require('../middleware/requireLogin')
 const Post = mongoose.model("post")
 
+// get all posts 
 router.get('/allpost', requireLogin, async (req, res) => {  
   const pagination = 4 
   const page = req.query.page ? parseInt(req.query.page) : 1
@@ -13,7 +13,7 @@ router.get('/allpost', requireLogin, async (req, res) => {
   const totalPosts = await Post.estimatedDocumentCount()
   const totalPages = Math.ceil(totalPosts / pagination)
   const posts = await Post.find()
-    .populate("postedBy", "_id name username pic")
+    .populate("postedBy", "_id username pic")
     .populate("comments.postedBy", "_id name username")
     .sort('-createdAt')
     .limit(page * pagination)
@@ -32,6 +32,7 @@ router.get('/allpost', requireLogin, async (req, res) => {
     })   
 })
 
+// get all comments of a post
 router.get('/allcomments/:postid', requireLogin, async (req, res) => {  
   const pagination = 5 
   console.log(req.query.page)
@@ -55,6 +56,7 @@ router.get('/allcomments/:postid', requireLogin, async (req, res) => {
   
 })
 
+// get all post of current logged in user
 router.get('/post',requireLogin, async (req,res)=>{
   const posts = await Post.find({postedBy:{$in:req.user._id}})
     .populate("postedBy", "_id name username pic")
@@ -71,6 +73,7 @@ router.get('/post',requireLogin, async (req,res)=>{
     res.json({postsdata})   
   })
   
+  // get all followings post
   router.get('/getsubpost', requireLogin, async (req, res) => {
     const pagination = 1; 
     const page = req.query.page ? parseInt(req.query.page) : 1;
@@ -91,6 +94,7 @@ router.get('/post',requireLogin, async (req,res)=>{
   res.json({postsdata})
 })
 
+// create new post
 router.post('/createpost',requireLogin,(req,res)=>{
     const {title,body,pic} = req.body
     if(!title || !body || !pic){
@@ -111,6 +115,7 @@ router.post('/createpost',requireLogin,(req,res)=>{
     })
 })
 
+// fetch a post
 router.get('/post/:postid', requireLogin, (req, res) => {
   console.log(req.params.postid)
     Post.findOne({ _id: req.params.postid })
@@ -125,6 +130,7 @@ router.get('/post/:postid', requireLogin, (req, res) => {
       });
 })
 
+// like a post
 router.put('/like', requireLogin, (req, res) => {
     Post.findByIdAndUpdate(
       req.body.postId,
@@ -146,6 +152,7 @@ router.put('/like', requireLogin, (req, res) => {
       });
 })
 
+// dislike a post
 router.put("/unlike", requireLogin, (req, res) => {
   Post.findByIdAndUpdate(
     req.body.postId,
@@ -167,6 +174,7 @@ router.put("/unlike", requireLogin, (req, res) => {
     });
 });
 
+// comment in a post
 router.put('/comment', requireLogin, (req, res) => {
     const comment = {
         text: req.body.text,
@@ -191,6 +199,7 @@ router.put('/comment', requireLogin, (req, res) => {
   })
 })
 
+// delete a post
 router.delete('/deletepost/:postId',requireLogin, (req, res) => {
   Post.findOne({ _id: req.params.postId })
     .populate("postedBy", "_id")

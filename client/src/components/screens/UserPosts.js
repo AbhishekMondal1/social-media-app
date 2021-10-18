@@ -19,7 +19,7 @@ const UserPosts = () => {
                 //console.log(moment().startOf("hour").fromNow())
                 console.log(result.mypost)
               setData(result.mypost)
-              console.log(data._id)
+              //console.log(data._id)
             })
     }, []);
 

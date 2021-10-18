@@ -22,7 +22,7 @@ const Profile = () => {
         setProfile(result.posts)
         setProfileName(result.user)
       })
-  }, [userProfileName]);
+  }, [userProfileName, userid]);
     //[userProfile]);
 
   const followUser = () => {
@@ -127,6 +127,7 @@ const Profile = () => {
                   borderRadius: "80px",
                 }}
                 src={userProfileName.pic}
+                alt="profile_picture"
               />
             </div>
             <div>
