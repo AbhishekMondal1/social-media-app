@@ -5,7 +5,7 @@ const requireLogin = require("../middleware/requireLogin");
 const Post = mongoose.model("post");
 const User = mongoose.model("User")
 
-
+// get user profile
 router.get('/user/:userid',requireLogin,(req, res) => {
     User.findOne({ _id: req.params.userid })
         .select("-password")
@@ -23,6 +23,7 @@ router.get('/user/:userid',requireLogin,(req, res) => {
     })
 })
 
+// follow users
 router.put('/follow', requireLogin, (req, res) => {
     console.log(req.user._id);
     User.findByIdAndUpdate(
@@ -131,6 +132,7 @@ router.put("/follow", requireLogin, (req, res) => {
   //)
 //});
 
+// unfollow following users
 router.put("/unfollow", requireLogin, (req, res) => {
   console.log(req.user._id);
   User.findByIdAndUpdate(
@@ -177,10 +179,12 @@ router.put('/unfollow',requireLogin,(req, res) => {
     )
 })
 */
+
+//search users
 router.post('/search-users', (req, res) => {
   let userPattern = new RegExp("^" + req.body.query)
-  User.find({ email: { $regex: userPattern } })
-    .select("_id email")
+  User.find({ username: { $regex: userPattern } })
+    .select("_id username")
     .then(user => {
       res.json({ user })
     }).catch(err => {
@@ -188,7 +192,7 @@ router.post('/search-users', (req, res) => {
   })
 })
 
-
+// edit profile bio
 router.put("/editbio", requireLogin, (req, res) => {
   const userbio = req.body.text;
   User.findByIdAndUpdate(
@@ -210,6 +214,39 @@ router.put("/editbio", requireLogin, (req, res) => {
     });
 });
 
+// update profile picture
+router.put("/updatepic", requireLogin, (req, res) => {
+  User.findByIdAndUpdate(
+    req.user._id,
+    { $set: { pic: req.body.pic } },
+    { new: true },
+    (err, result) => {
+      if (err) {
+        return res.status(422).json({ error: "pic canot post" });
+      }
+      res.json(result);
+    }
+  );
+});
 
+// get all followings
+router.get("/followings/:userId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    const followings = await Promise.all(
+      user.following.map((followingId) => {
+        return User.findById(followingId);
+      })
+    );
+    let followingList = [];
+    followings.map((friend) => {
+      const { _id, username, name, pic } = friend;
+      followingList.push({ _id, username, name, pic });
+    });
+    res.status(200).json(followingList);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
 
 module.exports = router;
