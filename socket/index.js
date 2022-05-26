@@ -36,12 +36,15 @@ io.on("connection", (socket) => {
 
   // send and get message
   socket.on("sendMessage", ({ senderId, receiverId, text }) => {
-    const user = getUser(receiverId);
-    console.log(user);
-    io.to(user.socketId).emit("getMessage", {
-      senderId,
-      text,
-    });
+    try {
+      const user = getUser(receiverId);
+      io.to(user?.socketId).emit("getMessage", {
+        senderId,
+        text,
+      });
+    } catch (error) {
+      console.log("Error occured", error)  
+    }
   });
 
   // when disconnect remove the user from user list and fetch new users list

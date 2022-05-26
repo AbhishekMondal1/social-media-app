@@ -40,7 +40,7 @@ const dbconnection = mongoose.connect(MONGOURI, {
   app.use(require('./routes/messages'))
   const adminRouter = require('./admin/admin.router')
 app.use('/admin', adminRouter)
-//app.use(require('./routes/adminroutes'))
+// app.use(require('./routes/adminroutes'))
 require('./middleware/passport_setup')
 
 //app.use(adminBro.options.rootPath, adminrouter);
