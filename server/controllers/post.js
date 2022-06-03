@@ -20,7 +20,6 @@ const getAllPosts = async (req, res) => {
     const allpostdata = { ...data.toObject(), ...viewerlikedpost }
     postsdata.push(allpostdata)
   })
-  console.log(postsdata)
   res.json({
     totalPages,
     postsdata

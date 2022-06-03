@@ -1,30 +1,46 @@
 const passport = require('passport'); 
-
+const User = require('../models/user');
+const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = require('../config/keys');
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-
-passport.serializeUser(function (user, cb) {
-  cb(null, user.id);
-});
-
-passport.deserializeUser(function (user, cb) {
-  //User.findById(id, function (err, user) {
-    cb(null, user);
-  //});
-});
 
 passport.use(
   new GoogleStrategy(
     {
-      clientID:
-        "125457807709-2to2thmbdplnqnjmr0jq1s545p590cr3.apps.googleusercontent.com",
-      clientSecret: "Cttfh0lxyBh8D16ALFdn4Huh",
+      clientID: GOOGLE_CLIENT_ID,
+      clientSecret: GOOGLE_CLIENT_SECRET,
       callbackURL: "/auth/google/callback",
     },
     function (accessToken, refreshToken, profile, cb) {
-      //User.findOrCreate({ googleId: profile.id }, function (err, user) {
-      console.log(profile);
-      return cb(null, profile);
-      //});
+      User.findOne({userId: profile.id}).then(existingUser =>{
+        if(existingUser){
+          cb(null, existingUser);
+        } else{
+          new User ({
+            username: profile.emails[0].value.split('@')[0],
+            email: profile.emails[0].value,
+            name: profile.displayName,
+            pic: profile.photos[0].value,
+            provider: profile.provider,
+            providerId: profile.id
+          })
+          .save()
+          .then(user =>{
+            cb(null, user)
+          })
+        }
+      })
     }
   )
 );
+
+passport.serializeUser(function (user, cb) {
+  const {_id, name, email, username, followers, following, pic} = user
+  const usr = {_id,  name, email, username, followers, following, pic}
+  cb(null, usr);
+});
+
+passport.deserializeUser(function (_id, cb) {
+  User.find({_id:_id}, function (err, user) {
+    cb(null, user);
+  });
+});

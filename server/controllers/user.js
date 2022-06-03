@@ -1,6 +1,11 @@
 const Post = require("../models/post");
 const User = require("../models/user");
 
+const getAuthUser = (req, res) => {
+    const { _id, username, name, pic, email, followers, following, provider, providerId } = req.user[0];
+    res.json({ user: { _id, username, name, pic, email, followers, following, provider, providerId } });
+}
+
 const getUser = (req, res) => {
     User.findOne({ _id: req.params.userid })
         .select("-password")
@@ -10,7 +15,7 @@ const getUser = (req, res) => {
                 .exec((err, posts) => {
                     if (err) {
                         return res.status(422).json({ error: err })
-                    } console.log("u", user);
+                    }
                     res.json({ user, posts })
                 })
         }).catch(err => {
@@ -19,13 +24,11 @@ const getUser = (req, res) => {
 };
 
 const followUser = (req, res) => {
-    console.log(req.user._id);
     User.findByIdAndUpdate(
         req.body.followId,
         { $push: { followers: req.user.id } },
         { new: true }
     ).then((use) => {
-        console.log("use", use);
         User.findByIdAndUpdate(
             req.user._id,
             {
@@ -42,12 +45,9 @@ const followUser = (req, res) => {
                 }
             });
     });
-
-    //res.send(req.user.id)
 };
 
 const unfollowUser = (req, res) => {
-    console.log(req.user._id);
     User.findByIdAndUpdate(
         req.body.unfollowId,
         { $pull: { followers: req.user.id } },
@@ -68,8 +68,6 @@ const unfollowUser = (req, res) => {
                 }
             });
     });
-
-    //res.send(req.user.id)
 };
 
 const searchUsers = (req, res) => {
@@ -99,7 +97,7 @@ const editBio = (req, res) => {
             if (err) {
                 return res.status(422).json({ error: err });
             } else {
-                res.json(result); console.log(result);
+                res.json(result);
             }
         });
 }
@@ -138,6 +136,7 @@ const getAllFollowings = async (req, res) => {
 };
 
 module.exports = {
+    getAuthUser,
     getUser,
     followUser,
     unfollowUser,

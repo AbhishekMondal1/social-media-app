@@ -11,7 +11,6 @@ const userSchema = new mongoose.Schema({
     },
     password:{
         type:String,
-        required:true
     },
     username: {
         type: String,
@@ -27,6 +26,14 @@ const userSchema = new mongoose.Schema({
     role: {
         type: String,
         default: "member"  
+    },
+    provider: {
+        type: String,
+        default: "localjwt"
+    },
+    providerId:{
+        type:String,
+        required: true
     },
     resetToken: String,
     expireToken: Date,

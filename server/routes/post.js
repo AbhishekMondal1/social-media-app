@@ -1,37 +1,38 @@
 const express = require('express');
 const router = express.Router();
-const requireLogin = require('../middleware/requireLogin');
+const isAuthorized = require('../middleware/isAuthorized');
 const { getAllPosts, getAllComments, getUserPosts, getFollowingsPosts, createPost,
   getPost, likePost, dislikePost, commentOnPost, deletePost } = require("../controllers/post");
 
+ 
 // get all posts 
-router.get('/allpost', requireLogin, getAllPosts);
+router.get('/allpost', isAuthorized, getAllPosts);
 
 // get all comments of a post
-router.get('/allcomments/:postid', requireLogin, getAllComments);
+router.get('/allcomments/:postid', isAuthorized, getAllComments);
 
 // get all post of current logged in user
-router.get('/post', requireLogin, getUserPosts);
+router.get('/post', isAuthorized, getUserPosts);
 
 // get all followings post
-router.get('/getsubpost', requireLogin, getFollowingsPosts);
+router.get('/getsubpost', isAuthorized, getFollowingsPosts);
 
 // create new post
-router.post('/createpost', requireLogin, createPost);
+router.post('/createpost', isAuthorized, createPost);
 
 // fetch a post
-router.get('/post/:postid', requireLogin, getPost);
+router.get('/post/:postid', isAuthorized, getPost);
 
 // like a post
-router.put('/like', requireLogin, likePost);
+router.put('/like', isAuthorized, likePost);
 
 // dislike a post
-router.put("/unlike", requireLogin, dislikePost);
+router.put('/unlike', isAuthorized, dislikePost);
 
 // comment in a post
-router.put('/comment', requireLogin, commentOnPost);
+router.put('/comment', isAuthorized, commentOnPost);
 
 // delete a post
-router.delete('/deletepost/:postId', requireLogin, deletePost);
+router.delete('/deletepost/:postId', isAuthorized, deletePost);
 
 module.exports = router;

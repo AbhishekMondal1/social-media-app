@@ -1,14 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const requireLogin= require("../middleware/requireLogin"); 
-const {createMessage, getMessage} = require("../controllers/messages");
+const isAuthorized = require("../middleware/isAuthorized");
+const { createMessage, getMessage } = require("../controllers/messages");
 
 //add messages
-//
-router.post("/", requireLogin, createMessage);
+router.post("/", isAuthorized, createMessage);
 
 // get messages
-//
-router.get("/:conversationId", requireLogin, getMessage);
+router.get("/:conversationId", isAuthorized, getMessage);
 
 module.exports = router;
