@@ -1,0 +1,121 @@
+.comments-card{
+    min-height: 500px;
+    height: 70%;
+    aspect-ratio: 1/1.6;
+    border-radius: 0 10px 10px 0 !important;
+}
+.comments-card img{
+    display: block;
+    border-radius: 2px 2px 0 0;
+    position: relative;
+    left: 0;right: 0;top: 0;bottom: 0;
+    width: 100%;
+    max-height: 300px;
+    max-width: 100%;
+}
+.postcard img{
+    margin: 5px 0 0 0;
+}
+.postcard{
+    margin: 26px auto;
+    background-color: #06060d;
+    background-color: #2b2c44;
+    background-color: var(--card-background-color);
+    border-radius: 0 0 0 0;
+    box-shadow: 3px 1px 3px 0 rgb(0 0 0 / 14%), 4px -1px 4px 0px rgb(0 0 0 / 12%),
+    1px 1px 2px 0 rgb(0 0 0 / 20%) !important;  
+}
+.cards {
+    position: relative;
+    margin: .5rem 0 1rem 0;
+    background-color: #fff;
+    -webkit-transition: -webkit-box-shadow .25s;
+    transition: -webkit-box-shadow .25s;
+    transition: box-shadow .25s;
+    transition: box-shadow .25s, -webkit-box-shadow .25s;
+    border-radius: 2px;
+}
+
+.comments-section{
+    min-height: 250px;
+    max-height: 400px;
+    overflow-y: scroll;
+}
+
+.comments-section::-webkit-scrollbar,.comments-card::-webkit-scrollbar{
+    display: none;
+}
+
+.comment-item{
+    display: flex;
+}
+.comment-avatar{
+    display: flex;
+    min-width: 40px;
+}
+
+.comment-avatar img{
+    object-fit: cover;
+}
+
+.comment-text-area{
+    display: inline;
+    margin: 0 0 0 2%;
+}
+
+.comment-username{
+    font-weight: 700 !important;
+}
+
+.comment-text{
+    margin: 0 0 0 2%;
+}
+
+.commenttime{
+    font-size: 12px !important;
+    margin: 15px 0 10px 0;
+}
+
+.commentfooter{
+    display: flex;
+    align-items: center;
+}
+
+.commentfooter button {
+    all: unset;
+    cursor: pointer;
+    left: 5px;
+    margin: 0 0 0 -25px;
+}
+
+.addmore{
+    display: flex;
+    justify-content: center;
+}
+
+.addmore button {
+    all: unset;
+    cursor: pointer;
+    margin: 0 0 20px 0;
+}
+
+.cards-content input{
+    border: none !important;
+    height: 2rem !important;
+    border-radius: .4rem !important;
+	outline: none !important;
+	font-family: inherit !important;
+    font-size: 14px !important;
+	background-color : #2b2c44 !important;
+    padding: .1rem 2rem .1rem .4rem !important;
+    justify-content: space-between !important;
+    caret-color: 000 !important;
+}
+
+@media( max-width:700px){
+    .comments-card{
+        width: 95vw;
+        aspect-ratio: 1/ 1.6;
+        border-radius: 2px !important;
+    }
+}

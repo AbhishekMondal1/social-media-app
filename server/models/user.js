@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
     },
     providerId:{
         type:String,
-        required: true
+        required: false
     },
     resetToken: String,
     expireToken: Date,

@@ -1,0 +1,132 @@
+.cards {
+    position: relative;
+    margin: .5rem 0 1rem 0;
+    background-color: #fff;
+    -webkit-transition: -webkit-box-shadow .25s;
+    transition: -webkit-box-shadow .25s;
+    transition: box-shadow .25s;
+    transition: box-shadow .25s, -webkit-box-shadow .25s;
+    border-radius: 2px;
+    min-height: 500px;
+}
+
+.comments-card2{
+    max-width: 30vw;
+    min-height: 500px;
+    min-width: 500px;
+    height: 70%;
+    box-shadow: 3px 1px 3px 0 rgb(0 0 0 / 14%), 4px -1px 4px 0px rgb(0 0 0 / 12%),
+    1px 1px 2px 0 rgb(0 0 0 / 20%) !important;    
+}
+
+.cards .card-image {
+    display: flex;
+    justify-content: center;
+    min-width: 500px;
+}
+
+.cards .card-image img {
+    display: block;
+    border-radius: 2px 2px 0 0;
+    position: relative;
+    left: 0; right: 0; top: 0; bottom: 0;
+    max-height: 300px;
+    max-width: 100%;
+}
+
+@media (max-width: 700px){
+    .comments-card2{
+        width: 98vw;
+        min-width: 95vw;
+        max-height: 70vw;
+    }
+    .cards .card-image{
+        min-width: 100%;
+    }
+    .cards .card-image img{
+        max-width: 100%;    
+    }
+    .cards{
+        height: 500px;
+    }
+}
+
+.card-image i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    color: #ff1c4d;
+    transform: translate(-50%,-50%);
+    animation: favouriteGrow 1s linear;
+    -webkit-animation: favouriteGrow 1s linear;
+    -moz-animation: favouriteGrow 1s linear;
+}
+
+.comments-card2 img{
+    margin: 5px 0 0 0;
+    object-fit: cover;
+}
+
+.cards .card-image i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    color: #ff1c4d;
+    transform: translate(-50%,-50%);
+    animation: favouriteGrow 1s linear;
+    -webkit-animation: favouriteGrow 1s linear;
+    -moz-animation: favouriteGrow 1s linear;
+}
+
+.cards-content {
+    padding:  24px;
+    border-radius: 0 0 2px 2px;
+}
+
+.cards-content input{
+    border: none !important;
+    height: 2rem !important;
+    border-radius: .4rem !important;
+	outline: none !important;
+	font-family: inherit !important;
+    font-size: 14px !important;
+	background-color : #2b2c44 !important;
+    padding: .1rem 2rem .1rem .4rem !important;
+    justify-content: space-between !important;
+    caret-color: 000 !important;
+}
+
+.uname{
+    margin-left: 5px;
+    font-size: 20px;
+    top: 1.5%;
+    position: absolute;
+}
+
+.leftbd {
+    border-left: 2px solid rgb(236, 232, 232);
+}
+
+.commenttime{
+    font-size: 14px;
+    margin: 5px 0 0 0;
+}
+
+.commentfooter{
+    display: flex;
+    align-items: center;
+}
+
+.commentfooter button {
+    all: unset;
+    cursor: pointer;
+    left: 5px;
+    margin: 0 0 0 -25px;
+    /* padding-left: 5px; */
+}
+
+.posttime{
+    font-size: 14px;
+    margin: 5px 0 5px 0;
+}
+

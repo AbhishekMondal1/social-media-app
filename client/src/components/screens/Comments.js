@@ -3,120 +3,53 @@ import { UserContext } from "../../App";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import moment from "moment";
-const Comments = () => {
-  const [data, setData] = useState([]);
+import { authHeader } from "../../services/authHeaderConfig";
+import "./comments.css";
+import send from "../icons/plane.svg";
+import addmore from "../icons/addplus.svg";
+
+import axios from "axios";
+
+const Comments = ({ setData, data }) => {
+  const [commentsdata, setCommentsData] = useState([]);
   const [page, setPage] = useState(1);
+  const [newpage, setnewPage] = useState(true);
+  const [comment, setComment] = useState("")
   const { state, dispatch } = useContext(UserContext);
   const { postid } = useParams();
 
   useEffect(() => {
-    fetch(`/allcomments/${postid}?page=${page}`, {
-      method: "GET",
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("jwt"),
-      },
+    axios.get(`/allcomments/${postid}?page=${page}&newpage=${newpage}`, {
+      headers: authHeader(),
     })
-      .then((res) => res.json())
+      .then((res) => res.data)
       .then((result) => {
-        //console.log(moment().startOf("hour").fromNow())
+        console.log(result)
         console.log(result.comments);
-        setData(result.comments);
-        console.log(data._id);
+        setCommentsData(result.comments);
       });
-  }, [page]);
-
-  const likepost = (id) => {
-    fetch("/like", {
-      method: "put",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + localStorage.getItem("jwt"),
-      },
-      body: JSON.stringify({
-        postId: id,
-      }),
-    })
-      .then((res) => res.json())
-      .then((result) => {
-        //console.log(result)
-        const newData = data.map((item) => {
-          if (item._id === result._id) {
-            return result;
-          } else {
-            return item;
-          }
-        });
-        console.log(newData);
-        setData(newData);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-  const unlikepost = (id) => {
-    fetch("/unlike", {
-      method: "put",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + localStorage.getItem("jwt"),
-      },
-      body: JSON.stringify({
-        postId: id,
-      }),
-    })
-      .then((res) => res.json())
-      .then((result) => {
-        //console.log(result)
-        const newData = data.map((item) => {
-          if (item._id === result._id) {
-            return result;
-          } else {
-            return item;
-          }
-        });
-        console.log(newData);
-        setData(newData);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
+  }, [page, newpage]);
 
   const makeComment = (text, postId) => {
-    fetch("/comment", {
-      method: "put",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + localStorage.getItem("jwt"),
-      },
-      body: JSON.stringify({
-        text,
-        postId,
-      }),
-    })
-      .then((res) => res.json())
-      .then((result) => {
-        const newData = data.map((item) => {
-          if (item._id === result._id) {
-            return result;
-          } else {
-            return item;
-          }
-        });
-        //console.log(newData)
-        setData(newData);
+    axios.put('/comment', {
+      text,
+      postId
+    },
+      {
+        headers: authHeader(),
       })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
+      .then(res => res.data)
+      .then(result => {
+        setnewPage(true)
+      }).catch(err => {
+        console.log(err)
+      })
+  }
 
   const deletePost = (postid) => {
     fetch(`/deletepost/${postid}`, {
       method: "delete",
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("jwt"),
-      },
+      headers: authHeader(),
     })
       .then((res) => res.json)
       .then((result) => {
@@ -137,116 +70,89 @@ const Comments = () => {
   }
   return (
     <>
-      {data._id === undefined ? (
+      {commentsdata?._id === undefined ? (
         <div class="lds-heart">
           <div></div>
         </div>
-      ) : (
-        <div className="card home-card" key={data._id}>
-          <h5 style={{ padding: "5px" }}>
-            <Link to={"/profile/" + data.postedBy._id}>
-              <div className="avatar">
-                <img
-                  src={data.postedBy.pic}
-                  alt=""
-                  className="circle"
-                  style={{
-                    width: "32px",
-                    height: "32px",
-                    borderRadius: "16px",
-                    marginLeft: "5px",
-                  }}
-                />
-                <span>{data.postedBy.name}</span>
-              </div>
-            </Link>
-
-            {data.postedBy._id === state._id && (
-              <i
-                className="material-icons"
-                style={{
-                  float: "right",
-                }}
-                onClick={() => deletePost(data._id)}
-              >
-                delete
-              </i>
-            )}
-          </h5>
-          <h5>
-            <Link to={"/profile/" + data.postedBy._id}>
-              {data.postedBy.username}
-            </Link>
-          </h5>
-
-          <div className="card-content">
-            <h6>{data.title}</h6>
-            <p>
-              <span>{data.postedBy.name}</span>
-              &nbsp;{data.body}
-            </p>
-            <hr></hr>
-            {data.comments.map((record) => {
-              return (
-                <>
-                  <Link to={"/profile/" + record.postedBy.pic}>
-                    <div className="avatar">
-                      <img
-                        src={data.postedBy.pic}
-                        alt=""
-                        className="circle"
-                        style={{
-                          width: "32px",
-                          height: "32px",
-                          borderRadius: "16px",
-                          marginLeft: "5px",
-                        }}
-                      />
-                    </div>
-                  </Link>
-                  <span>
-                    {" "}
-                    <h6 key={record._id}>
-                      <span style={{ fontWeight: "500" }}>
-                        {record.postedBy.name}
-                      </span>
-                      {record.text}
-                      <h6>
-                        <span>
-                          {moment().diff(moment(record.createdAt)) <
-                          7 * 24 * 60 * 60 * 1000
-                            ? moment(record.createdAt).fromNow()
-                            : moment(record.createdAt).calendar()}
+      ) :
+        (
+          <div className="cards comments-card postcard " key={commentsdata._id}>
+            <div className="cards-content">
+              <div className="comments-section">
+                {commentsdata.comments.map((record) => {
+                  return (
+                    <>
+                      <div className="comment-item">
+                        <span className="comment-avatar">
+                          <Link to={"/profile/" + record.postedBy._id}>
+                            <img
+                              src={record.postedBy.pic}
+                              alt=""
+                              className="circle"
+                              style={{
+                                width: "32px",
+                                height: "32px",
+                                borderRadius: "16px",
+                                marginLeft: "5px",
+                              }}
+                            />
+                            {" "}
+                          </Link>
                         </span>
-                      </h6>
-                    </h6>
-                  </span>
-                </>
-              );
-            })}
-            {data.comments.length > 4 ? (
-              <button className="loadbtn" onClick={pageChange}>
-                Load More
-              </button>
-            ) : (
-              ""
-            )}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                makeComment(e.target[0].value, data._id);
-              }}
-            >
-              <input type="text" placeholder="add a comment" />
-              <h6>
-                {moment().diff(moment(data.createdAt)) < 7 * 24 * 60 * 60 * 1000
-                  ? moment(data.createdAt).fromNow()
-                  : moment(data.createdAt).calendar()}
-              </h6>
-            </form>
+                        <div className="comment-text-area">
+                          <Link to={"/profile/" + record.postedBy._id}>
+                            <span className="comment-username" style={{ fontWeight: "500" }}>
+                              {record.postedBy.username}
+                            </span>
+                          </Link>
+                          <span className="comment-text">
+                            {record.text}
+                          </span>
+                          <span>
+                            <h6 className="commenttime">
+                              <span>
+                                {moment().diff(moment(record.createdAt)) <
+                                  7 * 24 * 60 * 60 * 1000
+                                  ? moment(record.createdAt).fromNow()
+                                  : moment(record.createdAt).calendar()}
+                              </span>
+                            </h6>
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  );
+                }).reverse()}
+                {commentsdata.comments.length > 4 ? (
+                  <div className="addmore">
+                    <button className="loadbtn" onClick={pageChange}>
+                      <img src={addmore} />
+                    </button>
+                  </div>
+                ) : (
+                  ""
+                )}
+              </div>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  makeComment(comment, commentsdata._id);
+                  setComment("")
+                }}
+                className="commentfooter"
+              >
+                <input type="text" placeholder="add a comment" onChange={(e) => { setComment(e.target.value) }} value={comment} />
+                <button type="submit" onClick={(e) => {
+                  e.preventDefault();
+                  makeComment(comment, commentsdata._id);
+                  setComment("")
+                }}>
+                  <img src={send} style={{ width: "25px" }} />
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
-      )}{" "}
+        )}{" "}
     </>
   );
 };
