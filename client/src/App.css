@@ -1,18 +1,36 @@
 @import url('https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300;400;500;600;700&display=swap');
 
+:root{
+    --body-background-color:#fafafa;
+    --card-background-color:#ffffff;
+}
 a {
     color: black !important;
 }
+*{
+    font-family: 'Red Hat Display' ;
+    font-weight: 500;
+}
 
+input{
+    font-family: 'Red Hat Display' ;
+    /* background-color: #041544 !important;
+    border-radius: 15px !important;
+    padding-left: 5px !important; */
+}
 .brand-logo, h2 {
     font-family: 'Grand Hotel',
-        cursive;
+        cursive !important;
 }
+
 
 .my-card {
     margin-top: 30px;
 }
-
+/* Auth card */
 .auth-card {
     padding: 20px;
     text-align: center;
@@ -29,6 +47,7 @@ a {
     box-shadow: 0 1px 0 0 rgb(8, 93, 252) !important;
 }
 
+/* user profile */
 a.gallary {
     display: flex;
     flex-wrap: wrap;
@@ -43,23 +62,6 @@ a.gallary {
     
 }
 
-.home-card {
-    max-width: 500px;
-    height: max-content;
-    margin: 26px auto;
-}
-
-.card-image i {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    color: #ff1c4d;
-    transform: translate(-50%,-50%);
-    animation: favouriteGrow 1s linear;
-    -webkit-animation: favouriteGrow 1s linear;
-    -moz-animation: favouriteGrow 1s linear;
-}
-
 .gallary img{
     width:150px;
     height:150px;
@@ -68,6 +70,35 @@ a.gallary {
 
 .gallary img:hover{
     transform: scale(1.1);
+}
+
+/* home card */
+.home-card {
+    max-width: 500px;
+    height: max-content;
+    margin: 26px auto;
+    background-color: #06060d;
+    background-color: #2b2c44;
+    background-color: var(--card-background-color);
+    border-radius: 15px;
+}
+
+.home-card img{
+    margin: 5px 0 0 0;
+    object-fit: cover;
+}
+
+.card-content input {
+    border: none !important;
+    height: 2rem !important;
+    border-radius: .4rem !important;
+	outline: none !important;
+	font-family: inherit !important;
+    font-size: 14px !important;
+	background-color : #2b2c44 !important;
+    padding: .1rem 2rem .1rem .4rem !important;
+    justify-content: space-between !important;
+    caret-color: 000 !important;
 }
 
 @keyframes favouriteGrow{
@@ -97,10 +128,6 @@ a.gallary {
     left: auto !important;
 }
 
-.collection-item{
-    width: 100%;
-}
-
 .material-icons:hover{
     cursor: pointer;
 }
@@ -112,14 +139,7 @@ a.gallary {
     -webkit-backdrop-filter: blur(4.0px);
     border-radius: 10px;
     color: rgb(247, 119, 60);
-    caret-color: #23f1be;
-    /*border: 7px solid;
-    border-image: linear-gradient(135deg,
-        #ff0000 0%,
-        #fa8517 20%,
-        #b6fa17 50%,
-        #17fa22 70%,
-        #ff00a8 100%)1;*/
+    caret-color: #23f1be;   
 }
 
 .mycard{
@@ -129,7 +149,10 @@ a.gallary {
 
 body{
     min-height: 100vh;
-    background: linear-gradient(to right top, #450bb3, #1af776);
+    /* background: linear-gradient(to right top, #450bb3, #1af776); */
+    background-color: #0b0c27;
+    background-color: #1c2247;
+    background-color: var(--body-background-color);
     background-attachment: fixed;
 }
 
@@ -169,7 +192,7 @@ background-image: -webkit-linear-gradient(90deg,
     transparent,
     transparent)
 }
-
+/* heart like animation */
 .lds-heart {
     display: inline-block;
     position: relative;
@@ -235,53 +258,6 @@ background-image: -webkit-linear-gradient(90deg,
     100% {
         transform: scale(0.9);
     }
-}
-
-.stories {
-    display: flex;
-    height: max-content;
-    margin: 26px auto;
-    width: 65%;
-    background-color: #fff;
-    border-radius: 3px;
-    border: 1px solid #efefef;
-    overflow: hidden;
-}
-
-.stories_info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 1em 0.5em;
-    cursor: pointer;
-}
-
-.stories_img {
-    width: 68px;
-    height: 68px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 2px solid #f83a63;
-    padding: 3px;
-}
-
-.stories_img span {
-    display: block;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    overflow: hidden;
-}
-
-.stories_img span img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.stories_name {
-    font-size: 11px;
-    margin-top: 4px;
 }
 
 .file-path-wrapper {

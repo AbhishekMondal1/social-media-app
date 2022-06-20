@@ -6,6 +6,7 @@ import Message from '../../messages/Message';
 import ChatOnline from '../../chatOnline/ChatOnline';
 import { UserContext } from '../../../App';
 import { io } from "socket.io-client";
+import { authHeader } from '../../../services/authHeaderConfig';
 
 const ChatMessenger = () => {
   const [conversations, setConversations] = useState([]);
@@ -57,7 +58,8 @@ const ChatMessenger = () => {
   useEffect(() => {
     const getConversations = async () => {
       try {
-        const res = await axios.get("/conversation/" + state._id);
+        const res = await axios.get("/conversation/" + state._id,
+          { headers: authHeader(), });
         setConversations(res.data);
         console.log(res.data);
       } catch (err) {
@@ -73,7 +75,10 @@ const ChatMessenger = () => {
     const getMessages = async () => {
       try {
         console.log(currentChat);
-        const res = await axios.get("/messages/" + currentChat?._id);
+        const res = await axios.get("/messages/" + currentChat?._id,
+          {
+            headers: authHeader(),
+          });
         console.log(res.data);
         setMessages(res.data);
       } catch (err) {
@@ -95,13 +100,18 @@ const ChatMessenger = () => {
     const receiverId = currentChat.members.find(
       (member) => member !== state._id
     );
+
     socket.current.emit("sendMessage", {
       senderId: state._id,
       receiverId,
       text: newMessage,
     });
     try {
-      const res = await axios.post("/messages", message);
+      const res = await axios.post("/messages", message,
+        {
+          headers: authHeader(),
+        }
+      );
       setMessages([...messages, res.data]);
       setNewMessage("");
     } catch (err) {
