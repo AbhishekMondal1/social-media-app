@@ -2,7 +2,7 @@ const Post = require("../models/post");
 const User = require("../models/user");
 
 const getAuthUser = (req, res) => {
-    const { _id, username, name, pic, email, followers, following, provider, providerId } = req.user[0];
+    const { _id, username, name, pic, email, followers, following, provider, providerId } = req.user;
     res.json({ user: { _id, username, name, pic, email, followers, following, provider, providerId } });
 }
 

@@ -1,6 +1,9 @@
+import axios from "axios";
 import React, { useEffect, useState, useContext } from "react";
 import {Link,useParams} from 'react-router-dom'
 import { UserContext } from '../../App'
+import { authHeader } from "../../services/authHeaderConfig";
+
 const Profile = () => {
   const [mypics, setPics] = useState([])  
   const {state,dispatch} = useContext(UserContext)
@@ -8,30 +11,22 @@ const Profile = () => {
   const [image, setImage] = useState("");
     const { postid } = useParams();
   useEffect(() => {
-    fetch('/post', {
-      headers: {
-        "Authorization": "Bearer " + localStorage.getItem("jwt")
-      }
-    }).then(res => res.json())
+    axios.post('/post', {
+      headers: authHeader(),
+    }).then(res => res.data)
       .then(result => {
-        console.log(state)
         setPics(result.postsdata)
     })
+    console.log(state)
   }, [])
   
-  const editBio = (text) => { 
-    console.log(text)
-    fetch("/editbio", {
-      method: "put",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + localStorage.getItem("jwt"),
-      },
-      body: JSON.stringify({
-        text
-      }),
+  const editBio = (text) => {
+    axios.put("/editbio", {
+      text
+    },{
+      headers: authHeader(),
     })
-      .then((res) => res.json())
+      .then((res) => res.data)
       .then((result) => { console.log(result);
         const newData = result;
         /*const newData = data.map((item) => {
@@ -42,7 +37,6 @@ const Profile = () => {
           }
         });*/
         console.log("nwq", result);
-        console.log("nw",newData);
         setData(newData);
       })
       .catch((err) => {
@@ -62,21 +56,13 @@ const Profile = () => {
        })
          .then((res) => res.json())
          .then((data) => {
-           // localStorage.setItem("user",JSON.stringify({...state,pic:data.url}))
-           // dispatch({type:"UPDATEPIC",payload:data.url})
-           fetch("/updatepic", {
-             method: "put",
-             headers: {
-               "content-type": "application/json",
-               Authorization: "Bearer " + localStorage.getItem("jwt"),
-             },
-             body: JSON.stringify({
+           axios.put("/updatepic",{
                pic: data.url,
-             }),
-           })
-             .then((res) => res.json())
+              },{
+                headers: authHeader(),
+              })
+             .then((res) => res.data)
              .then((result) => {
-               console.log(result);
                localStorage.setItem(
                  "user",
                  JSON.stringify({ ...state, pic: result.pic })
@@ -89,6 +75,7 @@ const Profile = () => {
          });
      }
    }, [image]);
+
    const updatephoto = (file) => {
      setImage(file);
   };
@@ -136,7 +123,7 @@ const Profile = () => {
               {state ? state.following.length : "0"} folllowing
             </h6>
           </div>
-          <h4 className="uname">{state ? state.username : "loading"}</h4>
+          <h4 className="usrname">{state ? state.username : "loading"}</h4>
           <h5 className="ubio">{state ? state.bio : "loading"}</h5>
 
           <form

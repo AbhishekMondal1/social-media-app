@@ -6,6 +6,7 @@ const User = mongoose.model('User')
 module.exports = (req, res, next) => {
     const { authorization } = req.headers
     if (req.user && !authorization) {
+        req.user = req.user[0]
         next();
     }
     else if (!req.user && authorization) {

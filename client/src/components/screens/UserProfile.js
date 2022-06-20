@@ -1,86 +1,76 @@
 import React, { useEffect, useState, useContext } from "react";
 import { UserContext } from "../../App";
-import {useParams, Link} from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
+import { authHeader } from "../../services/authHeaderConfig";
+import axios from "axios";
+
 const Profile = () => {
   const [userProfile, setProfile] = useState([])
   const [userProfileName, setProfileName] = useState([])
   const { state, dispatch } = useContext(UserContext);
   const { userid } = useParams()
-  const [showFollow,setShowFollow] = useState(state?!state.following.includes(userid):true)
+  const [showFollow, setShowFollow] = useState() //state?!state.following.includes(userid):true)
   //console.log(userProfileName);
   useEffect(() => {
-    fetch(`/user/${userid}`, {
-      method: "GET",
-      headers: {
-        "Authorization": "Bearer " + localStorage.getItem("jwt"),
-      },
+    axios.get(`/user/${userid}`, {
+      withCredentials: true,
+      headers: authHeader(),
     })
-      .then((res) => res.json())
+      .then((res) => res.data)
       .then(result => {
-       // console.log(result.user);
-        //console.log(result)
         setProfile(result.posts)
         setProfileName(result.user)
       })
+      console.log(state)
   }, [userProfileName, userid]);
-    //[userProfile]);
+  //[userProfile]);
 
   const followUser = () => {
-    fetch("/follow", {
-      method: "PUT",
-      headers: {
-        "content-type": "application/json",
-        "Authorization": "Bearer " + localStorage.getItem("jwt"),
-      },
-      body: JSON.stringify({
-        followId: userid
-      }),
+    axios.put("/follow", {
+      followId: userid
+    }, {
+      headers: authHeader(),
     })
-      .then((res) => res.json())
+      .then((res) => res.data)
       .then((data) => {
         console.log("data loggedin user", data); // logged in user data
-        console.log("userprofilenm",userProfileName); // opened profile 
-     // }) //
- // } //
-        
+        console.log("userprofilenm", userProfileName); // opened profile 
+        // }) //
+        // } //
+
         dispatch({
           type: "UPDATE",
           payload: { followers: data.followers, following: data.following }
         });
         // localStorage.setItem("user", JSON.stringify(data)); 
-       
-       
+
+
         setProfileName((prevState) => {
-          console.log("prevst",prevState);
+          console.log("prevst", prevState);
           return {
             ...prevState,
-           /* user: {
-              ...prevState.user,
-              followers: [...prevState.user.followers, data._id],
-            },*/
+            /* user: {
+               ...prevState.user,
+               followers: [...prevState.user.followers, data._id],
+             },*/
           };
         });
         setShowFollow(false)
       })
-      
-      .catch((err) => {
-          console.log("l", err);
-        });
-  } 
 
-  
+      .catch((err) => {
+        console.log("l", err);
+      });
+  }
+
+
   const unfollowUser = () => {
-    fetch("/unfollow", {
-      method: "PUT",
-      headers: {
-        "content-type": "application/json",
-        Authorization: "Bearer " + localStorage.getItem("jwt"),
-      },
-      body: JSON.stringify({
-        unfollowId: userid,
-      }),
+    axios.put("/unfollow", {
+      unfollowId: userid,
+    }, {
+      headers: authHeader(),
     })
-      .then((res) => res.json())
+      .then((res) => res.data)
       .then((data) => {
         console.log("data loggedin user", data); // logged in user data
         console.log("userprofilenm", userProfileName); // opened profile
@@ -106,7 +96,7 @@ const Profile = () => {
       .catch((err) => {
         console.log("l", err);
       });
-  }; 
+  };
   return (
     <>
       {userProfile && userProfileName ? (
@@ -164,6 +154,11 @@ const Profile = () => {
                   Unfollow
                 </button>
               )}
+              {
+                <button className="btn waves-effect waves-light #64b516 green darken-2">
+                  Message
+                </button>
+              }
             </div>
           </div>
           <div className="gallary">
@@ -171,16 +166,16 @@ const Profile = () => {
               return (
                 <>
                   <Link to={"/post/" + item._id}>
-                  <img
-                  key={item._id}
-                  className="item"
-                  src={item.photo}
-                  alt={item.title}
-                  />
+                    <img
+                      key={item._id}
+                      className="item"
+                      src={item.photo}
+                      alt={item.title}
+                    />
                   </Link>
                 </>
               );
-            })}            
+            })}
           </div>
         </div>
       ) : (

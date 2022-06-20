@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
-const commentSchema = require('./comment')
-const {ObjectId} = mongoose.Schema.Types
+const { ObjectId } = mongoose.Schema.Types
 
 const postSchema = new mongoose.Schema({
     title: {
@@ -16,17 +15,25 @@ const postSchema = new mongoose.Schema({
         required: true
     },
     likes: [{ type: ObjectId, ref: "User" }],
-    comments: [commentSchema],
+    comments: [{
+        type: new mongoose.Schema(
+            {
+                text: String,
+                postedBy: { type: ObjectId, ref: "User" }
+            },
+            { timestamps: true }
+        )
+    }],
     likesCount: {
         type: Number,
-        default: 0    
+        default: 0
     },
-    postedBy:{
-        type:ObjectId,
-        ref:"User"
+    postedBy: {
+        type: ObjectId,
+        ref: "User"
     },
 
-},{timestamps:true}
+}, { timestamps: true }
 )
 
-module.exports = mongoose.model("post",postSchema)
+module.exports = mongoose.model("post", postSchema)

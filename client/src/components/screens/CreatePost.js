@@ -1,29 +1,26 @@
-import React,{ useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import M from "materialize-css";
+import { authHeader } from "../../services/authHeaderConfig";
+import axios from "axios";
+
 const CreatePost = () => {
   const history = useHistory();
-  const [title,setTitle] = useState("")
-  const [body,setBody] = useState("")
-  const [image,setImage] = useState("")
-  const [url,setUrl] = useState("")
+  const [title, setTitle] = useState("")
+  const [body, setBody] = useState("")
+  const [image, setImage] = useState("")
+  const [url, setUrl] = useState("")
   useEffect(() => {
     if (url) {
-      fetch("/createpost", {
-        method: "post",
-        headers: {
-          "content-type": "application/json",
-          Authorization: "Bearer " + localStorage.getItem("jwt"),
-        },
-        body: JSON.stringify({
-          title,
-          body,
-          pic: url,
-        }),
+      axios.post("/createpost", {
+        title,
+        body,
+        pic: url,
+      }, {
+        headers: authHeader(),
       })
-        .then((res) => res.json())
+        .then((res) => res.data)
         .then((data) => {
-          console.log(data);
           if (data.error) {
             M.toast({ html: data.error, classes: "#ff1744 red accent-3" });
           } else {
@@ -38,26 +35,25 @@ const CreatePost = () => {
           console.log(err);
         });
     }
-  },[url])
+  }, [url])
 
   const postDetails = () => {
     const data = new FormData()
-    data.append("file",image)
+    data.append("file", image)
     data.append("upload_preset", "social_network")
     data.append("cloud_name", "digimode")
-    fetch(
+    axios.post(
       "https://api.cloudinary.com/v1_1/digimode/image/upload", {
-        method: "post",
-        body:data
+      data
     })
-      .then(res => res.json())
+      .then(res => res.data)
       .then(data => {
-      setUrl(data.url)
+        setUrl(data.url)
       })
       .catch(err => {
-      console.log(err)
+        console.log(err)
       })
-    
+
   };
 
   return (
@@ -85,7 +81,7 @@ const CreatePost = () => {
       <div className="file-field input-field">
         <div className="btn  #64b5f6 blue darken-1">
           <span>Upload image</span>
-          <input type="file" onChange={(e)=>setImage(e.target.files[0]) } />
+          <input type="file" onChange={(e) => setImage(e.target.files[0])} />
         </div>
         <div className="file-path-wrapper">
           <input className="file-path validate" type="text" />
@@ -95,7 +91,7 @@ const CreatePost = () => {
         className="btn waves-effect waves-light #64b5f6 blue darken-1"
         type="submit"
         name="action"
-        onClick={()=>postDetails()}
+        onClick={() => postDetails()}
       >
         Submit Post
       </button>

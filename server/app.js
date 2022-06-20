@@ -44,7 +44,6 @@ app.use(passport.session());
 const conversationRoute = require('./routes/conversations')
 const messageRoute = require('./routes/messages')
 require('./models/user')
-require('./models/comment')
 require('./models/post')
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));

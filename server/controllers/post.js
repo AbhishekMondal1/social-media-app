@@ -4,16 +4,14 @@ const getAllPosts = async (req, res) => {
   const pagination = 4
   const page = req.query.page ? parseInt(req.query.page) : 1
   const pagi = page * pagination
-  //try {
   const totalPosts = await Post.estimatedDocumentCount()
   const totalPages = Math.ceil(totalPosts / pagination)
   const posts = await Post.find()
-    .populate("postedBy", "_id username pic")
+    .populate("postedBy", "_id name username pic")
     .populate("comments.postedBy", "_id name username")
     .sort('-createdAt')
     .limit(page * pagination)
   const postsdata = []
-
   posts.map(data => {
     const viewerlikedpost = { viewerliked: false }
     viewerlikedpost.viewerliked = data.likes.includes(req.user._id) ? true : false
@@ -29,23 +27,19 @@ const getAllPosts = async (req, res) => {
 
 const getAllComments = async (req, res) => {
   const pagination = 5
-  console.log(req.query.page)
   const page = req.query.page ? parseInt(req.query.page) : 1
   const pagi = page * pagination
-  //try {
   const totalPosts = await Post.estimatedDocumentCount()
   const totalPages = Math.ceil(totalPosts / pagination)
   const comments = await Post.findOne({ _id: req.params.postid }, { "comments": { "$slice": pagi } })
-    .populate("postedBy", "_id name username")
+    .populate("postedBy", "_id name username pic")
     .populate("comments.postedBy", "_id name username pic")
     .sort('-createdAt')
     .limit(page * pagination)
-  console.log('com', comments);
   res.json({
     totalPages,
     comments,
   })
-  console.log('cm', comments)
 };
 
 const getUserPosts = async (req, res) => {
@@ -80,7 +74,6 @@ const getFollowingsPosts = async (req, res) => {
     const allpostdata = { ...data.toObject(), ...viewerlikedpost }
     postsdata.push(allpostdata)
   })
-  console.log(postsdata)
   res.json({ postsdata })
 };
 
@@ -105,13 +98,11 @@ const createPost = (req, res) => {
 };
 
 const getPost = (req, res) => {
-  console.log(req.params.postid)
   Post.findOne({ _id: req.params.postid })
-    .populate("postedBy", "_id name username")
+    .populate("postedBy", "_id name username pic")
     .populate("comments.postedBy", "_id name username")
     .then((mypost) => {
       res.json({ mypost });
-      console.log(mypost);
     })
     .catch((err) => {
       console.log(err);
@@ -119,6 +110,7 @@ const getPost = (req, res) => {
 };
 
 const likePost = (req, res) => {
+  console.log(req.user)
   Post.findByIdAndUpdate(
     req.body.postId,
     {
@@ -129,12 +121,16 @@ const likePost = (req, res) => {
       new: true
     }
   )
-    .populate("postedBy", "_id name pic")
+    .populate("postedBy", "_id name username pic")
+    .populate("comments.postedBy", "_id name username pic")
     .exec((err, result) => {
       if (err) {
         return res.status(422).json({ error: err });
       } else {
-        res.json(result);
+        const viewerlikedpost = { viewerliked: false };
+        viewerlikedpost.viewerliked = result.likes.includes(req.user._id) ? true : false;
+        const newpostdata = { ...result.toObject(), ...viewerlikedpost }
+        res.json(newpostdata);
       }
     });
 };
@@ -150,7 +146,8 @@ const dislikePost = (req, res) => {
       new: true,
     }
   )
-    .populate("postedBy", "_id name pic")
+    .populate("postedBy", "_id name username pic")
+    .populate("comments.postedBy", "_id name username pic")
     .exec((err, result) => {
       if (err) {
         return res.status(422).json({ error: err });
@@ -173,8 +170,8 @@ const commentOnPost = (req, res) => {
     {
       new: true,
     })
-    .populate("comments.postedBy", "_id name")
-    .populate("postedBy", "_id name")
+    .populate("comments.postedBy", "_id name username pic")
+    .populate("postedBy", "_id name username pic")
     .exec((err, result) => {
       if (err) {
         return res.status(422).json({ error: err });
