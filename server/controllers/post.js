@@ -1,80 +1,289 @@
 const Post = require("../models/post")
+const mongoose = require('mongoose')
 
+// get all timeline posts
 const getAllPosts = async (req, res) => {
-  const pagination = 4
+  const perPage = 4
   const page = req.query.page ? parseInt(req.query.page) : 1
-  const pagi = page * pagination
+  const pageLimit = page * perPage
+  const skipLimit = perPage * (page - 1)
   const totalPosts = await Post.estimatedDocumentCount()
-  const totalPages = Math.ceil(totalPosts / pagination)
-  const posts = await Post.find()
-    .populate("postedBy", "_id name username pic")
-    .populate("comments.postedBy", "_id name username")
-    .sort('-createdAt')
-    .limit(page * pagination)
-  const postsdata = []
-  posts.map(data => {
-    const viewerlikedpost = { viewerliked: false }
-    viewerlikedpost.viewerliked = data.likes.includes(req.user._id) ? true : false
-    const allpostdata = { ...data.toObject(), ...viewerlikedpost }
-    postsdata.push(allpostdata)
-  })
-  res.json({
-    totalPages,
-    postsdata
-  })
+  const totalPages = Math.ceil(totalPosts / perPage)
+
+  try {
+    const allposts = await Post.aggregate([
+      { $sort: { createdAt: -1 } },
+      { $limit: pageLimit },
+      { $skip: skipLimit },
+      {
+        $lookup: {
+          from: "users",
+          localField: "postedBy",
+          foreignField: "_id",
+          as: "postedBy"
+        }
+      },
+      {
+        $addFields: {
+          comments: { $slice: ["$comments", -1] },
+          commentsCount: { $size: "$comments" },
+          likesCount: { $size: "$likes" },
+          viewerliked: { $in: [req.user._id, "$likes"] },
+        }
+      },
+      {
+        $unwind: {
+          path: "$comments",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "comments.postedBy",
+          foreignField: "_id",
+          as: "comments.postedBy"
+        }
+      },
+      {
+        $group: {
+          _id: "$_id",
+          body: {
+            $first: "$body"
+          },
+          createdAt: {
+            $first: "$createdAt"
+          },
+          commentsCount: {
+            $first: "$commentsCount"
+          },
+          likesCount: {
+            $first: "$likesCount"
+          },
+          viewerliked: {
+            $first: "$viewerliked"
+          },
+          title: {
+            $first: "$title"
+          },
+          postedBy: {
+            $first: "$postedBy"
+          },
+          photo: {
+            $first: "$photo"
+          },
+          updatedAt: {
+            $first: "$updatedAt"
+          },
+          comments: {
+            $push: "$comments"
+          }
+        }
+      },
+      { $sort: { createdAt: -1 } },
+      {
+        $project: {
+          body: 1,
+          createdAt: 1,
+          commentsCount: 1,
+          likesCount: 1,
+          viewerliked: 1,
+          photo: 1,
+          title: 1,
+          updatedAt: 1,
+          "postedBy._id": 1,
+          "postedBy.name": 1,
+          "postedBy.username": 1,
+          "postedBy.pic": 1,
+          "comments.text": 1,
+          "comments._id": 1,
+          "comments.createdAt": 1,
+          "comments.updatedAt": 1,
+          "comments.postedBy._id": 1,
+          "comments.postedBy.name": 1,
+          "comments.postedBy.username": 1,
+          "comments.postedBy.pic": 1,
+        }
+      }
+    ])
+
+    res.json({
+      totalPages,
+      allposts,
+    })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get posts' })
+  }
 };
 
-
-const getAllComments = async (req, res) => {
-  const pagination = 5
-  const page = req.query.page ? parseInt(req.query.page) : 1
-  const pagi = page * pagination
-  const totalPosts = await Post.estimatedDocumentCount()
-  const totalPages = Math.ceil(totalPosts / pagination)
-  const comments = await Post.findOne({ _id: req.params.postid }, { "comments": { "$slice": pagi } })
-    .populate("postedBy", "_id name username pic")
-    .populate("comments.postedBy", "_id name username pic")
-    .sort('-createdAt')
-    .limit(page * pagination)
-  res.json({
-    totalPages,
-    comments,
-  })
-};
-
+// get all posts of current user
 const getUserPosts = async (req, res) => {
-  const posts = await Post.find({ postedBy: { $in: req.user._id } })
-    .populate("postedBy", "_id name username pic")
-    .populate("comments.postedBy", "_id name username")
-    .sort('-createdAt')
-  const postsdata = []
-
-  posts.map(data => {
-    const viewerlikedpost = { viewerliked: false };
-    viewerlikedpost.viewerliked = data.likes.includes(req.user._id) ? true : false;
-    const allpostdata = { ...data.toObject(), ...viewerlikedpost }
-    postsdata.push(allpostdata)
-  })
-  res.json({ postsdata })
+  const userid = mongoose.Types.ObjectId(req.user._id)
+  try {
+    const postsdata = await Post.aggregate([
+      {
+        $match: {
+          'postedBy': userid,
+        }
+      }, {
+        $sort: {
+          'createdAt': -1
+        }
+      }, {
+        $project: {
+          'createdAt': 1,
+          'photo': 1,
+          'title': 1
+        }
+      }
+    ])
+    res.json({
+      postsdata,
+    })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get user posts' })
+  }
 };
 
+// get following users posts
 const getFollowingsPosts = async (req, res) => {
-  const pagination = 1;
+  const perPage = 4;
   const page = req.query.page ? parseInt(req.query.page) : 1;
-  const posts = await Post.find({ postedBy: { $in: req.user.following } })
-    .populate("postedBy", "_id name username pic")
-    .populate("comments.postedBy", "_id name username")
-    .sort("-createdAt")
-    .limit(page * pagination)
-  const postsdata = []
+  const pageLimit = page * perPage
+  const skipLimit = perPage * (page - 1)
+  const totalPosts = await Post.estimatedDocumentCount()
+  const totalPages = Math.ceil(totalPosts / perPage)
 
-  posts.map(data => {
-    const viewerlikedpost = { viewerliked: false };
-    viewerlikedpost.viewerliked = data.likes.includes(req.user._id) ? true : false;
-    const allpostdata = { ...data.toObject(), ...viewerlikedpost }
-    postsdata.push(allpostdata)
-  })
-  res.json({ postsdata })
+  try {
+    const allFollowingPosts = await Post.aggregate([
+      {
+        $match: {
+          "postedBy": {
+            $in: req.user.following
+          }
+        }
+      },
+      {
+        $sort: {
+          "createdAt": -1
+        }
+      },
+      {
+        $limit: pageLimit
+      },
+      {
+        $skip: skipLimit
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "postedBy",
+          foreignField: "_id",
+          as: "postedBy"
+        }
+      },
+      {
+        $addFields: {
+          comments: {
+            $slice: ["$comments", -1]
+          },
+          commentsCount: {
+            "$size": "$comments"
+          },
+          likesCount: {
+            "$size": "$likes"
+          },
+          viewerliked: {
+            "$in": [req.user._id, "$likes"]
+          }
+        }
+      },
+      {
+        $unwind: {
+          path: "$comments",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "comments.postedBy",
+          foreignField: "_id",
+          as: "comments.postedBy"
+        }
+      },
+      {
+        $group: {
+          _id: "$_id",
+          body: {
+            $first: "$body"
+          },
+          createdAt: {
+            $first: "$createdAt"
+          },
+          commentsCount: {
+            $first: "$commentsCount"
+          },
+          likesCount: {
+            $first: "$likesCount"
+          },
+          viewerliked: {
+            $first: "$viewerliked"
+          },
+          title: {
+            $first: "$title"
+          },
+          postedBy: {
+            $first: "$postedBy"
+          },
+          photo: {
+            $first: "$photo"
+          },
+          updatedAt: {
+            $first: "$updatedAt"
+          },
+          comments: {
+            $push: "$comments"
+          }
+        }
+      },
+      {
+        $sort: {
+          "createdAt": -1
+        }
+      },
+      {
+        $project: {
+          body: 1,
+          createdAt: 1,
+          commentsCount: 1,
+          likesCount: 1,
+          viewerliked: 1,
+          photo: 1,
+          title: 1,
+          updatedAt: 1,
+          "postedBy._id": 1,
+          "postedBy.name": 1,
+          "postedBy.username": 1,
+          "postedBy.pic": 1,
+          "comments.text": 1,
+          "comments._id": 1,
+          "comments.createdAt": 1,
+          "comments.updatedAt": 1,
+          "comments.postedBy._id": 1,
+          "comments.postedBy.name": 1,
+          "comments.postedBy.username": 1,
+          "comments.postedBy.pic": 1
+        }
+      }
+    ])
+    res.json({
+      allFollowingPosts,
+      totalPages
+    })
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get following users posts' })
+  }
 };
 
 const createPost = (req, res) => {
@@ -97,88 +306,302 @@ const createPost = (req, res) => {
     })
 };
 
-const getPost = (req, res) => {
-  Post.findOne({ _id: req.params.postid })
-    .populate("postedBy", "_id name username pic")
-    .populate("comments.postedBy", "_id name username")
-    .then((mypost) => {
-      res.json({ mypost });
+// fetch single post
+const getPost = async (req, res) => {
+  if (!req.params.postid) {
+    res
+      .status(500)
+      .json({
+        error: 'no postid received'
+      })
+  }
+
+  let id = mongoose.Types.ObjectId(req.params.postid);
+  try {
+    const singlepost = await Post.aggregate([
+      { $match: { "_id": id } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "postedBy",
+          foreignField: "_id",
+          as: "postedBy"
+        }
+      },
+      {
+        $project: {
+          body: 1,
+          createdAt: 1,
+          likesCount: { $size: "$likes" },
+          title: 1,
+          photo: 1,
+          updatedAt: 1,
+          viewerliked: { $in: [req.user._id, "$likes"] },
+          "postedBy._id": 1,
+          "postedBy.name": 1,
+          "postedBy.username": 1,
+          "postedBy.pic": 1,
+
+        }
+      }
+    ])
+    res.json({
+      singlepost
     })
-    .catch((err) => {
-      console.log(err);
-    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get post' })
+  }
 };
 
+// like a post
 const likePost = (req, res) => {
-  console.log(req.user)
   Post.findByIdAndUpdate(
     req.body.postId,
     {
       $push: { likes: req.user._id },
-      $inc: { likesCount: 1 }
     },
     {
       new: true
     }
   )
-    .populate("postedBy", "_id name username pic")
-    .populate("comments.postedBy", "_id name username pic")
     .exec((err, result) => {
       if (err) {
         return res.status(422).json({ error: err });
       } else {
-        const viewerlikedpost = { viewerliked: false };
-        viewerlikedpost.viewerliked = result.likes.includes(req.user._id) ? true : false;
-        const newpostdata = { ...result.toObject(), ...viewerlikedpost }
-        res.json(newpostdata);
+        res.json({
+          viewerliked: true,
+          _id: result._id
+        });
       }
     });
 };
 
+// dislike a post
 const dislikePost = (req, res) => {
   Post.findByIdAndUpdate(
     req.body.postId,
     {
       $pull: { likes: req.user._id },
-      $inc: { likesCount: -1 },
     },
     {
       new: true,
     }
   )
-    .populate("postedBy", "_id name username pic")
-    .populate("comments.postedBy", "_id name username pic")
     .exec((err, result) => {
       if (err) {
         return res.status(422).json({ error: err });
       } else {
-        res.json(result);
+        res.json({
+          viewerliked: false,
+          _id: result._id
+        });
       }
     });
 };
 
-const commentOnPost = (req, res) => {
+//get all comments of a single post
+const getAllComments = async (req, res) => {
+  const perPage = 4
+  const page = req.query.page ? parseInt(req.query.page) : 1
+  let pageLimit = 1
+  if (req.query.newpage) {
+    console.log(req.query.newpage)
+    pageLimit = page * perPage + 2;
+  }
+  else {
+    pageLimit = page * perPage
+  }
+
+  if (!req.params.postid) {
+    res
+      .status(500)
+      .json({
+        error: 'no postid received'
+      })
+  }
+
+  let postId = mongoose.Types.ObjectId(req.params.postid);
+
+  try {
+    const allpostdata = await Post.aggregate([
+      { $match: { "_id": postId } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "postedBy",
+          foreignField: "_id",
+          as: "postedBy"
+        }
+      },
+      {
+        $unwind: {
+          path: "$comments",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      { $sort: { "comments.createdAt": -1 } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "comments.postedBy",
+          foreignField: "_id",
+          as: "comments.postedBy"
+        }
+      },
+      {
+        $group: {
+          _id: "$_id",
+          body: {
+            $first: "$body"
+          },
+          createdAt: {
+            $first: "$createdAt"
+          },
+          updatedAt: {
+            $first: "$updatedAt"
+          },
+          likes: {
+            $first: "$likes"
+          },
+          title: {
+            $first: "$title"
+          },
+          postedBy: {
+            $first: "$postedBy"
+          },
+          photo: {
+            $first: "$photo"
+          },
+          comments: {
+            $push: "$comments"
+          }
+        }
+      },
+      {
+        $addFields: {
+          "comments": { $slice: ["$comments", pageLimit] },
+          commentsCount: { $size: "$comments" },
+          likesCount: { $size: "$likes" },
+          viewerliked: { $in: [req.user._id, "$likes"] },
+        }
+      },
+      {
+        $project: {
+          body: 1,
+          createdAt: 1,
+          likesCount: 1,
+          commentsCount: 1,
+          title: 1,
+          photo: 1,
+          updatedAt: 1,
+          viewerliked: 1,
+          hasMoreComments: { $cond: [{ $gt: ["$commentsCount", pageLimit] }, true, false] },
+          "postedBy._id": 1,
+          "postedBy.name": 1,
+          "postedBy.username": 1,
+          "postedBy.pic": 1,
+          "comments.text": 1,
+          "comments._id": 1,
+          "comments.createdAt": 1,
+          "comments.updatedAt": 1,
+          "comments.postedBy._id": 1,
+          "comments.postedBy.name": 1,
+          "comments.postedBy.username": 1,
+          "comments.postedBy.pic": 1,
+        }
+      }
+    ])
+    res.json({
+      comments: allpostdata,
+    })
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get user posts' })
+  }
+};
+
+// comment on post
+const commentOnPost = async (req, res) => {
+  if (!req.body.text) {
+    res
+      .status(500)
+      .json({
+        error: 'Please provide a message with your comment.'
+      })
+  }
+
+  const objectid = mongoose.Types.ObjectId();
   const comment = {
+    _id: objectid,
     text: req.body.text,
     postedBy: req.user._id
   }
-  Post.findByIdAndUpdate(
-    req.body.postId,
-    {
-      $push: { comments: comment },
-    },
-    {
-      new: true,
-    })
-    .populate("comments.postedBy", "_id name username pic")
-    .populate("postedBy", "_id name username pic")
-    .exec((err, result) => {
-      if (err) {
-        return res.status(422).json({ error: err });
-      } else {
-        res.json(result);
+
+  try {
+    const post = await Post.findByIdAndUpdate(
+      req.body.postId,
+      {
+        $push: { comments: comment },
+      },
+      {
+        new: true,
       }
-    })
+    )
+    if (post) {
+      const latestComment = await Post.aggregate([
+        {
+          $match: {
+            "comments._id": objectid,
+          }
+        },
+        {
+          $project: {
+            comments: 1
+          }
+        }, {
+          $unwind: {
+            path: '$comments',
+            preserveNullAndEmptyArrays: true
+          }
+        }, {
+          $match: {
+            'comments._id': objectid,
+          }
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "comments.postedBy",
+            foreignField: "_id",
+            as: "comments.postedBy"
+          }
+        },
+        {
+          $project: {
+            "comments.text": 1,
+            "comments._id": 1,
+            "comments.createdAt": 1,
+            "comments.updatedAt": 1,
+            "comments.postedBy._id": 1,
+            "comments.postedBy.name": 1,
+            "comments.postedBy.username": 1,
+            "comments.postedBy.pic": 1,
+          }
+        }
+      ])
+      const newComment = []
+      newComment.push(latestComment[0].comments)
+      console.log(newComment)
+      res.json({
+        c: newComment
+      });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        error: 'Failed to comment'
+      })
+  }
 };
 
 const deletePost = (req, res) => {

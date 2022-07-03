@@ -24,10 +24,6 @@ const postSchema = new mongoose.Schema({
             { timestamps: true }
         )
     }],
-    likesCount: {
-        type: Number,
-        default: 0
-    },
     postedBy: {
         type: ObjectId,
         ref: "User"
