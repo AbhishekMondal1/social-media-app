@@ -9,7 +9,7 @@ import Post from "../Post/Post";
 import Comments from "./Comments";
 
 const UserPosts = () => {
-  const [data, setData] = useState([])
+  const [singlePostData, setSinglePostData] = useState([])
   const { state, dispatch } = useContext(UserContext)
   const { postid } = useParams()
 
@@ -18,23 +18,23 @@ const UserPosts = () => {
       headers: authHeader(),
     }).then(res => res.data)
       .then(result => {
-        setData(result.allpostdata)
+        setSinglePostData(result.singlepost[0])
       })
   }, []);
 
   return (
     <>
-      {data._id === undefined ? (
+      {singlePostData._id === undefined ? (
         <div class="lds-heart">
           <div></div>
         </div>
       ) : (
         <div className="individualpost-wrapper">
           <div className="individualpost-left">
-            <Post item={data} individualpost={true} setData={setData} data={data} />
+            <Post item={singlePostData} individualpost={true} setSinglePostData={setSinglePostData} singlePostData={singlePostData} />
           </div>
           <div className="individualpost-right">
-            <Comments setData={setData} data={data} />
+            <Comments setSinglePostData={setSinglePostData} singlePostData={singlePostData} />
           </div>
         </div>
       )}

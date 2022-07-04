@@ -11,7 +11,7 @@ const Profile = () => {
   const [image, setImage] = useState("");
     const { postid } = useParams();
   useEffect(() => {
-    axios.post('/post', {
+    axios.get('/post', {
       headers: authHeader(),
     }).then(res => res.data)
       .then(result => {

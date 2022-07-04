@@ -7,7 +7,7 @@ import "./post.css";
 import send from "../icons/plane.svg";
 import axios from "axios";
 
-const Post = ({ item, individualpost, data, setData }) => {
+const Post = ({ item, individualpost, data, setData, singlePostData, setSinglePostData }) => {
     const [loading, setLoading] = useState(true)
     const [comment, setComment] = useState("")
     const { state, dispatch } = useContext(UserContext)
@@ -31,15 +31,27 @@ const Post = ({ item, individualpost, data, setData }) => {
         })
             .then(res => res.data)
             .then(result => {
-                const newData = data.map(item => {
-                    if (item._id === result._id) {
-                        return result
-                    }
-                    else {
-                        return item
-                    }
-                });
-                setData(newData)
+                if (individualpost) {
+                    if (singlePostData._id === result._id)
+                        setSinglePostData((prevdata) => {
+                            return {
+                                ...prevdata, viewerliked: result.viewerliked, likesCount: prevdata.likesCount + 1
+                            }
+                        })
+                }
+                if (!individualpost) {
+                    const newData = data.map(item => {
+                        if (item._id === result._id) {
+                            item.viewerliked = result.viewerliked
+                            item.likesCount = item.likesCount + 1
+                            return item 
+                        }
+                        else {
+                            return item
+                        }
+                    });
+                    setData(newData)
+                }
             }).catch(err => {
                 console.log(err)
             })
@@ -53,14 +65,26 @@ const Post = ({ item, individualpost, data, setData }) => {
             })
             .then(res => res.data)
             .then(result => {
-                const newData = data.map((item) => {
-                    if (item._id === result._id) {
-                        return result;
-                    } else {
-                        return item;
-                    }
-                });
-                setData(newData);
+                if (individualpost) {
+                    if (singlePostData._id === result._id)
+                        setSinglePostData((prevdata) => {
+                            return {
+                                ...prevdata, viewerliked: result.viewerliked, likesCount: prevdata.likesCount - 1
+                            }
+                        })
+                }
+                if (!individualpost) {
+                    const newData = data.map((item) => {
+                        if (item._id === result._id) {
+                            item.viewerliked = result.viewerliked
+                            item.likesCount = item.likesCount - 1                            
+                            return item 
+                        } else {
+                            return item;
+                        }
+                    });
+                    setData(newData);
+                }
             })
             .catch((err) => {
                 console.log(err);
@@ -105,44 +129,44 @@ const Post = ({ item, individualpost, data, setData }) => {
     }
 
     return (
-        <div className={`${individualpost? 'cards postcard2 comments-card2 leftbd' : 'card home-card'}`} key={item._id}>
-                <div tabIndex={0} style={{ padding: "5px" }}>
-                    <Link
-                        to={
-                            item.postedBy._id !== state?._id
-                                ? "/profile/" + item.postedBy._id
-                                : "/profile"
-                        }
-                    >
-                        <div className="avatar">
-                            <img
-                                src={item.postedBy.pic}
-                                alt=""
-                                className="circle"
-                                style={{
-                                    width: "32px",
-                                    height: "32px",
-                                    borderRadius: "16px",
-                                    marginLeft: "5px",
-                                }}
-                            />
-                            <span className="uname">{item.postedBy.username} </span>
-                        </div>
-                    </Link>
-                    <span>
-                        {item.postedBy._id === state?._id && (
-                            <i
-                                className="material-icons"
-                                style={{
-                                    float: "right",
-                                }}
-                                onClick={() => deletePost(item._id)}
-                            >
-                                delete
-                            </i>
-                        )}
-                    </span>
-                </div>
+        <div className={`${individualpost ? 'cards postcard2 comments-card2 leftbd' : 'card home-card'}`} key={item._id}>
+            <div tabIndex={0} style={{ padding: "5px", display: "flex", justifyContent: "space-between" }}>
+                <Link
+                    to={
+                        item.postedBy[0]._id !== state?._id
+                            ? "/profile/" + item.postedBy[0]._id
+                            : "/profile"
+                    }
+                >
+                    <div className="avatar">
+                        <img
+                            src={item.postedBy[0].pic}
+                            alt=""
+                            className="circle"
+                            style={{
+                                width: "32px",
+                                height: "32px",
+                                borderRadius: "16px",
+                                marginLeft: "5px",
+                            }}
+                        />
+                        <span className="uname">{item.postedBy[0].username} </span>
+                    </div>
+                </Link>
+                <span>
+                    {item.postedBy[0]._id === state?._id && (
+                        <i
+                            className="material-icons"
+                            style={{
+                                float: "right",
+                            }}
+                            onClick={() => deletePost(item._id)}
+                        >
+                            delete
+                        </i>
+                    )}
+                </span>
+            </div>
 
             <div
                 className="card-image"
@@ -176,31 +200,27 @@ const Post = ({ item, individualpost, data, setData }) => {
                 </Link>
                 <h6>{item.likesCount} likes</h6>
                 <p>
-                    <span>{item.postedBy.username}</span>
+                    <span>{item.postedBy[0].username}</span>
                     &nbsp;{item.body}
                 </p>
                 {individualpost || (
                     <>
-                        {item.comments.slice(0, 1).map((record) => {
-                            return (
-                                <h6 key={record._id}>
-                                    <span style={{ fontWeight: "500" }}>
-                                        {record.postedBy.name}
-                                    </span>{" "}
-                                    {record.text}
-                                    <h6 className="commenttime">
-                                        <span>
-                                            {moment().diff(moment(record.createdAt)) <
-                                                7 * 24 * 60 * 60 * 1000
-                                                ? moment(record.createdAt).fromNow()
-                                                : moment(record.createdAt).calendar()}
-                                        </span>
-                                    </h6>
-                                </h6>
-                            );
-                        })}
+                        <h6 key={item.comments[0]._id}>
+                            <span style={{ fontWeight: "500" }}>
+                                {item.comments[0].postedBy[0]?.name}
+                            </span>{" "}
+                            {item.comments[0].text}
+                            <h6 className="commenttime">
+                                <span>
+                                    {moment().diff(moment(item.comments[0].createdAt)) <
+                                        7 * 24 * 60 * 60 * 1000
+                                        ? moment(item.comments[0].createdAt).fromNow()
+                                        : moment(item.comments[0].createdAt).calendar()}
+                                </span>
+                            </h6>
+                        </h6>
                         <Link to={"/post/" + item._id}>
-                            <p>view all {item.comments.length} comments</p>
+                            <p>view all {item.commentsCount} comments</p>
                         </Link>
                     </>
                 )

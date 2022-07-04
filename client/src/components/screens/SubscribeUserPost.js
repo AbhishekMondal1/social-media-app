@@ -17,8 +17,8 @@ const SubscribeUserPost = () => {
       headers: authHeader(),
     })
       .then((res) => res.data)
-      .then((result) => {
-        setData(result.postsdata);
+      .then(({allFollowingPosts, totalpage}) => {
+        setData([...data, ...allFollowingPosts]);
       });
     setLoading(false)
   }, [page]);
@@ -28,7 +28,6 @@ const SubscribeUserPost = () => {
     if (scrollTop + clientHeight >= scrollHeight) {
       console.log("bottom");
       setPage(page + 1);
-      //setPage(prevPage => prevPage + 1)
       console.log(page);
     }
   });

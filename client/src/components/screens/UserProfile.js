@@ -115,6 +115,7 @@ const Profile = () => {
                   width: "160px",
                   height: "160px",
                   borderRadius: "80px",
+                  objectFit: "cover",
                 }}
                 src={userProfileName.pic}
                 alt="profile_picture"
