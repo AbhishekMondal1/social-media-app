@@ -1,16 +1,23 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { UserContext } from "../../App";
 import { useParams, Link } from 'react-router-dom'
 import { authHeader } from "../../services/authHeaderConfig";
+import SkeletonPostGridLoader from "../SkeletonPostGridLoader/SkeletonPostGridLoader";
 import axios from "axios";
 
 const Profile = () => {
-  const [userProfile, setProfile] = useState([])
-  const [userProfileName, setProfileName] = useState([])
+  const [userProfile, setUserProfile] = useState([])
   const { state, dispatch } = useContext(UserContext);
   const { userid } = useParams()
   const [showFollow, setShowFollow] = useState() //state?!state.following.includes(userid):true)
-  //console.log(userProfileName);
+
+  const [postdata, setPostData] = useState([])
+  const [page, setPage] = useState(1)
+  const [hasMorePages, setHasMorePages] = useState(true)
+  const [loading, setLoading] = useState(true)
+  const [totalNumberOfPosts, setTOtalNumberOfPosts] = useState(0)
+  const morepostRef = useRef()
+
   useEffect(() => {
     axios.get(`/user/${userid}`, {
       withCredentials: true,
@@ -18,12 +25,49 @@ const Profile = () => {
     })
       .then((res) => res.data)
       .then(result => {
-        setProfile(result.posts)
-        setProfileName(result.user)
+        setUserProfile(result.user[0])
+        setShowFollow(!result.user[0].follows)
       })
-      console.log(state)
-  }, [userProfileName, userid]);
-  //[userProfile]);
+  }, []);
+
+  useEffect(() => {
+    setLoading(true)
+    axios.get(`/userspostlist/${userid}?page=${page}`, {
+      withCredentials: 'true',
+      headers: authHeader(),
+    })
+      .then(res => res.data)
+      .then(({ hasMorePages, postlists, totalNumberOfPosts }) => {
+        console.log(postlists)
+        setPostData([...postdata, ...postlists])
+        setHasMorePages(hasMorePages)
+        setTOtalNumberOfPosts(totalNumberOfPosts)
+        setLoading(false)
+      })
+  }, [page])
+
+  useEffect(() => {
+    if (!morepostRef.current) return;
+    const observer = new IntersectionObserver(
+      (data) => {
+        if (data[0].isIntersecting) {
+          setPage(prevpage => prevpage + 1)
+        }
+      },
+      {
+        root: null,
+        threshold: 0,
+      })
+    observer.observe(morepostRef.current)
+    if (hasMorePages === false) {
+      observer.unobserve(morepostRef.current)
+    }
+    return () => {
+      if (morepostRef.current) {
+        observer.unobserve(morepostRef.current)
+      }
+    }
+  }, [morepostRef.current, hasMorePages])
 
   const followUser = () => {
     axios.put("/follow", {
@@ -34,7 +78,7 @@ const Profile = () => {
       .then((res) => res.data)
       .then((data) => {
         console.log("data loggedin user", data); // logged in user data
-        console.log("userprofilenm", userProfileName); // opened profile 
+        console.log("userprofilenm", userProfile); // opened profile 
         // }) //
         // } //
 
@@ -45,7 +89,7 @@ const Profile = () => {
         // localStorage.setItem("user", JSON.stringify(data)); 
 
 
-        setProfileName((prevState) => {
+        setUserProfile((prevState) => {
           console.log("prevst", prevState);
           return {
             ...prevState,
@@ -73,7 +117,7 @@ const Profile = () => {
       .then((res) => res.data)
       .then((data) => {
         console.log("data loggedin user", data); // logged in user data
-        console.log("userprofilenm", userProfileName); // opened profile
+        console.log("userprofilenm", userProfile); // opened profile
 
         dispatch({
           type: "UPDATE",
@@ -81,7 +125,7 @@ const Profile = () => {
         });
         // localStorage.setItem("user", JSON.stringify(data));
 
-        setProfileName((prevState) => {
+        setUserProfile((prevState) => {
           console.log("prevst", prevState);
           return {
             ...prevState,
@@ -99,7 +143,7 @@ const Profile = () => {
   };
   return (
     <>
-      {userProfile && userProfileName ? (
+      {userProfile && (
         <div style={{ maxWidth: "550px", margin: "0px auto" }}>
           <div
             style={{
@@ -109,7 +153,7 @@ const Profile = () => {
               borderBottom: "1px solid grey",
             }}
           >
-            <div>
+            <div style={{height: "180px"}}>
               <img
                 style={{
                   width: "160px",
@@ -117,14 +161,14 @@ const Profile = () => {
                   borderRadius: "80px",
                   objectFit: "cover",
                 }}
-                src={userProfileName.pic}
+                src={userProfile.pic}
                 alt="profile_picture"
               />
             </div>
             <div>
-              <h4>{userProfileName.name}</h4>
-              <h5>{userProfileName.username}</h5>
-              <h5>{userProfileName.bio}</h5>
+              <h4>{userProfile.name}</h4>
+              <h5>{userProfile.username}</h5>
+              <h5>{userProfile.bio}</h5>
               <div
                 style={{
                   display: "flex",
@@ -132,9 +176,9 @@ const Profile = () => {
                   width: "108%",
                 }}
               >
-                <h6>{userProfile.length} posts</h6>
-                <h6>{userProfileName.followers?.length} followers</h6>
-                <h6>{userProfileName.following?.length} following</h6>
+                <h6>{totalNumberOfPosts} posts</h6>
+                <h6>{userProfile.totalFollowers} followers</h6>
+                <h6>{userProfile.totalFollowing} following</h6>
               </div>
               {showFollow ? (
                 <button
@@ -163,7 +207,7 @@ const Profile = () => {
             </div>
           </div>
           <div className="gallary">
-            {userProfile.map((item) => {
+            {postdata.map((item) => {
               return (
                 <>
                   <Link to={"/post/" + item._id}>
@@ -179,9 +223,15 @@ const Profile = () => {
             })}
           </div>
         </div>
-      ) : (
-        <h2>Loading...</h2>
       )}
+      {loading && <SkeletonPostGridLoader />}
+      <div className="morepost"
+        ref={morepostRef}
+        style={{
+          width: "10px", height: "50px",
+          display: `${loading ? "none" : "block"}`
+        }}>
+      </div>
     </>
   );
 }

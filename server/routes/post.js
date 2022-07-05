@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const isAuthorized = require('../middleware/isAuthorized');
-const { getAllPosts, getAllComments, getUserPosts, getFollowingsPosts, createPost,
+const { getAllPosts, getAllComments, getUserPosts, getUsersPostList, getFollowingsPosts, createPost,
   getPost, likePost, dislikePost, commentOnPost, deletePost } = require("../controllers/post");
 
  
@@ -13,6 +13,9 @@ router.get('/allcomments/:postid', isAuthorized, getAllComments);
 
 // get all post of current logged in user
 router.get('/post', isAuthorized, getUserPosts);
+
+// get all post of a user profile
+router.get('/userspostlist/:userid', isAuthorized, getUsersPostList);
 
 // get all followings post
 router.get('/getsubpost', isAuthorized, getFollowingsPosts);

@@ -1,26 +1,52 @@
 const Post = require("../models/post");
 const User = require("../models/user");
+const mongoose = require("mongoose");
 
 const getAuthUser = (req, res) => {
     const { _id, username, name, pic, email, followers, following, provider, providerId } = req.user;
     res.json({ user: { _id, username, name, pic, email, followers, following, provider, providerId } });
 }
 
-const getUser = (req, res) => {
-    User.findOne({ _id: req.params.userid })
-        .select("-password")
-        .then(user => {
-            Post.find({ postedBy: req.params.userid })
-                .populate("postedBy", "_id name")
-                .exec((err, posts) => {
-                    if (err) {
-                        return res.status(422).json({ error: err })
-                    }
-                    res.json({ user, posts })
-                })
-        }).catch(err => {
-            return res.status(404).json({ error: "User not found" })
-        })
+// get user profile
+const getUser = async (req, res) => {
+  const userid = mongoose.Types.ObjectId(req.params.userid);
+  try {
+    const user = await User.aggregate([
+      {
+        $match: {
+          "_id": userid,
+        }
+      }, {
+        $addFields: {
+          totalFollowers: {
+            "$size": "$followers"
+          },
+          totalFollowing: {
+            "$size": "$following"
+          },
+          follows: {
+            $in: [req.user._id, "$followers"]
+          }
+        }
+      }, {
+        $project: {
+          name: 1,
+          pic: 1,
+          username: 1,
+          bio: 1,
+          follows: 1,
+          totalFollowers: 1,
+          totalFollowing: 1,
+          createdAt: 1
+        }
+      }
+    ])
+    res.json({
+      user,
+    })
+  } catch (error) {
+    res.status(500).json({ error: "Failed to get user data" })
+  }
 };
 
 const followUser = (req, res) => {

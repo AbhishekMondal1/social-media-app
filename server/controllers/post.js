@@ -9,6 +9,7 @@ const getAllPosts = async (req, res) => {
   const skipLimit = perPage * (page - 1)
   const totalPosts = await Post.estimatedDocumentCount()
   const totalPages = Math.ceil(totalPosts / perPage)
+  const hasMorePages = page < totalPages
 
   try {
     const allposts = await Post.aggregate([
@@ -108,8 +109,8 @@ const getAllPosts = async (req, res) => {
     ])
 
     res.json({
-      totalPages,
       allposts,
+      hasMorePages,
     })
   } catch (err) {
     res.status(500).json({ error: 'Failed to get posts' })
@@ -145,16 +146,78 @@ const getUserPosts = async (req, res) => {
   }
 };
 
+// get all post of a user profile
+const getUsersPostList = async (req, res) => {
+  const perPage = 9;
+  const page = req.query.page ? parseInt(req.query.page) : 1;
+  const pageLimit = page * perPage
+  const skipLimit = perPage * (page - 1)
+
+  try {
+  const totalPosts = await Post.aggregate([
+    {
+      $match: { "postedBy": mongoose.Types.ObjectId(req.params.userid) }
+    },
+    {
+      $count: "total"
+    }
+  ])
+  const totalNumberOfPosts = totalPosts[0].total
+  const totalPages = Math.ceil(totalNumberOfPosts / perPage)
+  const hasMorePages = page < totalPages
+
+  const postlists = await Post.aggregate([
+    {
+      $match: { "postedBy": mongoose.Types.ObjectId(req.params.userid) }
+    },
+    {
+      $sort: {
+        "createdAt": -1
+      }
+    },
+    {
+      $limit: pageLimit
+    },
+    {
+      $skip: skipLimit
+    },
+    {
+      $project: {
+        photo: 1,
+        body: 1,
+        createdAt: 1,
+      }
+    }
+  ])
+
+  return res.json({
+    postlists,
+    hasMorePages,
+    totalNumberOfPosts,
+  })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get user posts' })
+  }
+}
+
 // get following users posts
 const getFollowingsPosts = async (req, res) => {
   const perPage = 4;
   const page = req.query.page ? parseInt(req.query.page) : 1;
   const pageLimit = page * perPage
   const skipLimit = perPage * (page - 1)
-  const totalPosts = await Post.estimatedDocumentCount()
-  const totalPages = Math.ceil(totalPosts / perPage)
 
   try {
+    const totalPosts = await Post.aggregate([
+      {
+        $match: { "postedBy": { $in: req.user.following } }
+      },
+      {
+        $count: "total"
+      }
+    ])
+    const totalPages = Math.ceil(totalPosts[0].total / perPage)
+    const hasMorePages = page < totalPages
     const allFollowingPosts = await Post.aggregate([
       {
         $match: {
@@ -279,7 +342,7 @@ const getFollowingsPosts = async (req, res) => {
     ])
     res.json({
       allFollowingPosts,
-      totalPages
+      hasMorePages,
     })
   } catch (error) {
     res.status(500).json({ error: 'Failed to get following users posts' })
@@ -624,6 +687,7 @@ module.exports = {
   getAllPosts,
   getAllComments,
   getUserPosts,
+  getUsersPostList,
   getFollowingsPosts,
   createPost,
   getPost,

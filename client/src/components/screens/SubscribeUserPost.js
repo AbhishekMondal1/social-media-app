@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { UserContext } from "../../App";
-import { Link } from "react-router-dom";
 import { authHeader } from "../../services/authHeaderConfig";
 import axios from "axios";
 import Post from "../Post/Post";
+import SkeletonPostLoader from "../SkeletonPostLoader/SkeletonPostLoader";
 
 const SubscribeUserPost = () => {
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
-  const [totalpage, setTotalPage] = useState(0)
+  const [hasMorePages, setHasMorePages] = useState(true)
   const [loading, setLoading] = useState(true);
+  const morepostRef = useRef()
   const { state, dispatch } = useContext(UserContext);
   useEffect(() => {
     setLoading(true)
@@ -17,20 +18,35 @@ const SubscribeUserPost = () => {
       headers: authHeader(),
     })
       .then((res) => res.data)
-      .then(({allFollowingPosts, totalpage}) => {
+      .then(({allFollowingPosts, hasMorePages}) => {
         setData([...data, ...allFollowingPosts]);
+        setHasMorePages(hasMorePages)
+        setLoading(false)
       });
-    setLoading(false)
   }, [page]);
 
-  window.addEventListener("scroll", () => {
-    const { scrollHeight, scrollTop, clientHeight } = document.documentElement;
-    if (scrollTop + clientHeight >= scrollHeight) {
-      console.log("bottom");
-      setPage(page + 1);
-      console.log(page);
+  useEffect(() => {
+    if (!morepostRef.current) return;
+    const observer = new IntersectionObserver(
+      (data) => {
+        if (data[0].isIntersecting) {
+          setPage(prevpage => prevpage + 1)
+        }
+      },
+      {
+        root: null,
+        threshold: 0,
+      })
+    observer.observe(morepostRef.current)
+    if (hasMorePages === false) {
+      observer.unobserve(morepostRef.current)
     }
-  });
+    return () => {
+      if (morepostRef.current) {
+        observer.unobserve(morepostRef.current)
+      }
+    }
+  }, [morepostRef.current, hasMorePages])
 
   return (
     <div className="home">
@@ -39,7 +55,14 @@ const SubscribeUserPost = () => {
           <Post item={item} setData={setData} data={data} />
         );
       })}
-       {loading ? <h1>Loading...</h1> : ""}
+       {loading && <SkeletonPostLoader />}
+       <div className="morepost"
+        ref={morepostRef}
+        style={{
+          width: "10px", height: "50px",
+          display: `${loading ? "none" : "block"}`
+        }}>
+      </div>
     </div>
   );
 };
