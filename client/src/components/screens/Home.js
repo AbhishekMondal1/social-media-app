@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { UserContext } from '../../App'
-import Post from "../Post/Post"
-import { Link } from 'react-router-dom'
+import { UserContext } from '../../App';
+import Post from "../Post/Post";
 import Stories from "./Stories";
 import { authHeader } from '../../services/authHeaderConfig';
 import axios from "axios";
+import SkeletonPostLoader from "../SkeletonPostLoader/SkeletonPostLoader";
 
 const Home = () => {
   const [data, setData] = useState([])
   const [page, setPage] = useState(1)
-  const [totalpage, setTotalPage] = useState(0)
+  const [hasMorePages, setHasMorePages] = useState(true)
   const [loading, setLoading] = useState(true)
-  const { state, dispatch } = useContext(UserContext) 
+  const morepostRef = useRef()
+  const { state, dispatch } = useContext(UserContext)
 
   useEffect(() => {
     axios.get("/auth/user", {
@@ -39,42 +40,52 @@ const Home = () => {
       headers: authHeader(),
     })
       .then(res => res.data)
-      .then(({ postsdata, totalPages }) => {
-        setData(postsdata)
-        setTotalPage(totalPages)
-        console.log(postsdata)
+      .then(({ hasMorePages, allposts }) => {
+        setData([...data, ...allposts])
+        setHasMorePages(hasMorePages)
+        setLoading(false)
       })
-    setLoading(false)
   }, [page])
 
-  window.addEventListener('scroll', () => {
-    const { scrollHeight, scrollTop, clientHeight } = document.documentElement;
-    let maxpage = 0
-    if (page === 4) {
-      maxpage = 1
-    }
-    if (page < totalpage && maxpage === 0) {
-      if (scrollTop + clientHeight >= scrollHeight) {
-        console.log('bottom');
-        if (page <= totalpage) {
-          setPage(page + 1)
-          console.log('pages', page)
+  useEffect(() => {
+    if (!morepostRef.current) return;
+    const observer = new IntersectionObserver(
+      (data) => {
+        if (data[0].isIntersecting) {
+          setPage(prevpage => prevpage + 1)
         }
-        //setPage(prevPage => prevPage + 1)
-        // console.log('page',page)
+      },
+      {
+        root: null,
+        threshold: 0,
+      })
+    observer.observe(morepostRef.current)
+    if (hasMorePages === false) {
+      observer.unobserve(morepostRef.current)
+    }
+    return () => {
+      if (morepostRef.current) {
+        observer.unobserve(morepostRef.current)
       }
     }
-  })
+  }, [morepostRef.current, hasMorePages])
 
   return (
     <div className="home">
       <Stories />
-      {data.map((item) => {
+      {data && data.map((item) => {
         return (
-          <Post item={item} setData={setData} data={data}/>          
+          <Post item={item} setData={setData} data={data} />
         );
       })}
-      {loading ? <h1>Loading...</h1> : ""}
+      {loading && <SkeletonPostLoader />}
+      <div className="morepost"
+        ref={morepostRef}
+        style={{
+          width: "10px", height: "50px",
+          display: `${loading ? "none" : "block"}`
+        }}>
+      </div>
     </div>
   );
 }
