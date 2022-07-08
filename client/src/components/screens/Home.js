@@ -25,6 +25,7 @@ const Home = () => {
         if (res.data.error) {
           console.log("ERROR")
         } else {
+          localStorage.setItem("user", JSON.stringify(res.data.user));
           dispatch({ type: "USER", payload: res.data.user })
         }
       })

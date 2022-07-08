@@ -9,7 +9,7 @@ const Profile = () => {
   const [userProfile, setUserProfile] = useState([])
   const { state, dispatch } = useContext(UserContext);
   const { userid } = useParams()
-  const [showFollow, setShowFollow] = useState() //state?!state.following.includes(userid):true)
+  const [showFollow, setShowFollow] = useState()
 
   const [postdata, setPostData] = useState([])
   const [page, setPage] = useState(1)
@@ -76,37 +76,26 @@ const Profile = () => {
       headers: authHeader(),
     })
       .then((res) => res.data)
-      .then((data) => {
-        console.log("data loggedin user", data); // logged in user data
-        console.log("userprofilenm", userProfile); // opened profile 
-        // }) //
-        // } //
-
-        dispatch({
-          type: "UPDATE",
-          payload: { followers: data.followers, following: data.following }
-        });
-        // localStorage.setItem("user", JSON.stringify(data)); 
-
-
-        setUserProfile((prevState) => {
-          console.log("prevst", prevState);
-          return {
-            ...prevState,
-            /* user: {
-               ...prevState.user,
-               followers: [...prevState.user.followers, data._id],
-             },*/
-          };
-        });
+      .then((data) => {   
         setShowFollow(false)
-      })
-
+        setShowFollow(!data.follows)
+        setUserProfile(prev => ({
+          ...prev,
+          totalFollowers: prev.totalFollowers + 1,
+        }))
+        console.log(state.totalFollowing)
+        dispatch({
+          type: "UPDATE_FOLLOWING",
+          payload: { totalFollowing: state.totalFollowing + 1 }
+        });
+        const localStorageUser = JSON.parse(localStorage.getItem("user"))
+        localStorageUser.totalFollowing = localStorageUser.totalFollowing + 1
+        localStorage.setItem("user", JSON.stringify(localStorageUser))        
+      })      
       .catch((err) => {
-        console.log("l", err);
+        console.log(err);
       });
-  }
-
+    }
 
   const unfollowUser = () => {
     axios.put("/unfollow", {
@@ -116,33 +105,29 @@ const Profile = () => {
     })
       .then((res) => res.data)
       .then((data) => {
-        console.log("data loggedin user", data); // logged in user data
-        console.log("userprofilenm", userProfile); // opened profile
+        console.log("data loggedin user", data);
+        console.log("userprofilenm", userProfile); 
 
+        setShowFollow(!data.follows)
+        setUserProfile(prev => ({
+          ...prev,
+          totalFollowers: prev.totalFollowers - 1,
+        }))
+        console.log(state.totalFollowing)
         dispatch({
-          type: "UPDATE",
-          payload: { followers: data.followers, following: data.following },
+          type: "UPDATE_FOLLOWING",
+          payload: { totalFollowing: state.totalFollowing - 1 }
         });
-        // localStorage.setItem("user", JSON.stringify(data));
-
-        setUserProfile((prevState) => {
-          console.log("prevst", prevState);
-          return {
-            ...prevState,
-            /* user: {
-              ...prevState.user,
-              followers: [...prevState.user.followers, data._id],
-            },*/
-          };
-        });
-        setShowFollow(true);
+        const localStorageUser = JSON.parse(localStorage.getItem("user"))
+        localStorageUser.totalFollowing = localStorageUser.totalFollowing - 1
+        localStorage.setItem("user", JSON.stringify(localStorageUser))
       })
       .catch((err) => {
-        console.log("l", err);
+        console.log(err);
       });
-  };
-  return (
-    <>
+    };
+    return (
+      <>
       {userProfile && (
         <div style={{ maxWidth: "550px", margin: "0px auto" }}>
           <div

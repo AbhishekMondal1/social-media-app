@@ -3,13 +3,14 @@ import React, { useEffect, useState, useContext } from "react";
 import {Link,useParams} from 'react-router-dom'
 import { UserContext } from '../../App'
 import { authHeader } from "../../services/authHeaderConfig";
+import settingsicon from "../icons/settings.svg";
 
 const Profile = () => {
   const [mypics, setPics] = useState([])  
   const {state,dispatch} = useContext(UserContext)
   const [data, setData] = useState([state]);
-  const [image, setImage] = useState("");
-    const { postid } = useParams();
+  const { postid } = useParams();
+
   useEffect(() => {
     axios.get('/post', {
       headers: authHeader(),
@@ -20,67 +21,7 @@ const Profile = () => {
     console.log(state)
   }, [])
   
-  const editBio = (text) => {
-    axios.put("/editbio", {
-      text
-    },{
-      headers: authHeader(),
-    })
-      .then((res) => res.data)
-      .then((result) => { console.log(result);
-        const newData = result;
-        /*const newData = data.map((item) => {
-          if (item._id == result._id) {
-            return result;
-          } else {
-            return item;
-          }
-        });*/
-        console.log("nwq", result);
-        setData(newData);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-   useEffect(() => {
-     if (image) {
-       const data = new FormData();
-       data.append("file", image);
-       data.append("upload_preset", "social_network");
-       data.append("cloud_name", "digimode");
-       fetch("https://api.cloudinary.com/v1_1/digimode/image/upload", {
-         method: "post",
-         body: data,
-       })
-         .then((res) => res.json())
-         .then((data) => {
-           axios.put("/updatepic",{
-               pic: data.url,
-              },{
-                headers: authHeader(),
-              })
-             .then((res) => res.data)
-             .then((result) => {
-               localStorage.setItem(
-                 "user",
-                 JSON.stringify({ ...state, pic: result.pic })
-               );
-               dispatch({ type: "UPDATEPIC", payload: result.pic });
-             });
-         })
-         .catch((err) => {
-           console.log(err);
-         });
-     }
-   }, [image]);
-
-   const updatephoto = (file) => {
-     setImage(file);
-  };
-  
-  return (
+   return (
     <div style={{ maxWidth: "550px", margin: "0px auto" }}>
       <div
         style={{
@@ -102,12 +43,17 @@ const Profile = () => {
           />
         </div>
         <div>
-          <h4
-            className="pname"
-            style={{ textDecoration: "uppercase", fontSize: "30px" }}
-          >
-            {state ? state.name : "loading"}
-          </h4>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h4
+              className="pname"
+              style={{ textDecoration: "uppercase", fontSize: "30px" }}
+            >
+              {state ? state.name : "loading"}
+            </h4>
+            <Link to="/editprofile" className="linksettings">
+              <img src={settingsicon} />
+            </Link>
+          </div>
           <div
             style={{
               display: "flex",
@@ -117,42 +63,16 @@ const Profile = () => {
           >
             <h6 className="">{mypics ? mypics.length : "0"} posts</h6>
             <h6 className="">
-              {state ? state.followers.length : "0"} followers
+              {state ? state.totalFollowers : "0"} followers
             </h6>
             <h6 className="">
-              {state ? state.following.length : "0"} folllowing
+              {state ? state.totalFollowing : "0"} folllowing
             </h6>
           </div>
           <h4 className="usrname">{state ? state.username : "loading"}</h4>
           <h5 className="ubio">{state ? state.bio : "loading"}</h5>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              editBio(e.target[0].value);
-            }}
-          >
-            <input type="text" placeholder="add bio" />
-          </form>
         </div>
-      </div>
-      <div
-        className="file-field input-field"
-        style={{
-          margin: "10px 0px 0px 50px",
-          width: "22%",
-          bottom: "108px",
-          left: "15px",
-        }}
-      >
-        <div className="btn  #64b5f6 blue darken-1">
-          <span>Update pic</span>
-          <input type="file" onChange={(e) => updatephoto(e.target.files[0])} />
-        </div>
-        <div className="file-path-wrapper">
-          <input className="file-path validate" type="text" />
-        </div>
-      </div>
+      </div>     
       <div className="gallary">
         {mypics.map((item) => {
           return (

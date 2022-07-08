@@ -16,6 +16,7 @@ import UserPosts from "./components/screens/UserPosts";
 import Comments from "./components/screens/Comments";
 import Messenger from './components/Messenger';
 import ChatMessenger from "./components/screens/chatMessenger/ChatMessenger";
+import EditProfile from "./components/screens/EditProfile";
 //import UserPosts from './components/screens/UserPosts'
 export const UserContext = createContext()
 const Routing = () => {
@@ -37,7 +38,7 @@ const Routing = () => {
   return (
     <Switch>
       <Route exact path="/">
-        <Home />
+         <Home />
       </Route>
       <Route path="/signup">
         <Signup />
@@ -47,6 +48,9 @@ const Routing = () => {
       </Route>
       <Route exact path="/profile">
         <Profile />
+      </Route>
+      <Route path="/editprofile">
+        <EditProfile />
       </Route>
       <Route path="/create">
         <CreatePost />

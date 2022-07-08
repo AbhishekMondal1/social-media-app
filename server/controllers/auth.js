@@ -55,32 +55,63 @@ const signup = (req, res) => {
         })
 };
 
-const signin = (req, res) => {
-    const { email, password } = req.body
-    if (!email || !password) {
-        return res.status(422).json({ error: "Please enter Email or Password" })
-    }
-    User.findOne({ email: email })
-        .then(savedUser => {
-            if (!savedUser) {
-                return res.status(422).json({ error: "Invalid Email or Password" })
-            }
-            bcrypt.compare(password, savedUser.password)
-                .then(doMatch => {
-                    if (doMatch) {
-                        // res.json({message:"successfully signed in"})
-                        const token = jwt.sign({ _id: savedUser._id }, JWT_SECRET)
-                        const { _id, name, email, username, followers, following, bio, pic, provider } = savedUser
-                        res.json({ token, user: { _id, name, email, username, followers, following, bio, pic, provider } })
-                    }
-                    else {
-                        return res.status(422).json({ error: "Invalid Email or Password" })
-                    }
-                })
-                .catch(err => {
-                    console.log(err)
-                })
+const signin = async (req, res) => {
+  const { email, password } = req.body
+  if (!email || !password) {
+    return res.status(422).json({ error: "Please enter Email or Password" })
+  }
+  
+  try {
+    const savedUser = await User.aggregate([
+      {
+        $match: {
+          "email": email,
+        }
+      }, {
+        $addFields: {
+          totalFollowers: {
+            "$size": "$followers"
+          },
+          totalFollowing: {
+            "$size": "$following"
+          },
+        }
+      }, {
+        $project: {
+          name: 1,
+          email: 1,
+          username: 1,
+          password: 1,
+          pic: 1,
+          bio: 1,
+          provider: 1,
+          totalFollowers: 1,
+          totalFollowing: 1,
+          createdAt: 1
+        }
+      }
+    ])
+
+    const doMatch = await bcrypt.compare(password, savedUser[0].password)
+    try {
+      if (doMatch) {
+        const token = jwt.sign({ _id: savedUser[0]._id }, JWT_SECRET)
+        const { _id, name, email, username, pic, totalFollowers, totalFollowing, bio, provider, createdAt } = savedUser[0]
+        res.json({
+          token,
+          user: { _id, name, email, username, pic, totalFollowers, totalFollowing, bio, provider, createdAt }
         })
+      }
+      else {
+        return res.status(422).json({ error: "Invalid Email or Password" })
+      }
+    }
+    catch {
+      console.log(err)
+    }
+  } catch (error) {
+    return res.status(422).json({ error: "Invalid Email or Password" })
+  }
 };
 
 const resetPassword = (req, res) => {

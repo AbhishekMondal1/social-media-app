@@ -7,11 +7,10 @@ export const reducer = (state, action) => {
     if(action.type === "CLEAR"){
         return null
     }
-    if (action.type === "UPDATE") {
+    if (action.type === "UPDATE_FOLLOWING") {
         return {
             ...state,
-            followers: action.payload.followers,
-            following: action.payload.following
+            totalFollowing: action.payload.totalFollowing
         }
     }
     if (action.type === "UPDATEPIC") {

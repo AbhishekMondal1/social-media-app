@@ -260,11 +260,11 @@ background-image: -webkit-linear-gradient(90deg,
     }
 }
 
-.file-path-wrapper {
-    width: 0%;
+button.linksettings {
+    all: unset;
+    cursor: pointer;
 }
 
-.file-field input[type=file] {
-    width: 90%;
-    bottom: 7px;
+.linksettings img{
+    width: 25px;
 }
