@@ -1,31 +1,35 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./chatOnline.css";
+import { authHeader } from "../../services/authHeaderConfig";
 
 const ChatOnline = ({ onlineUsers, currentId, setCurrentChat, newMessage }) => {
-  const [followings, setFollowings] = useState([]);
   const [onlineFollowings, setOnlineFollowings] = useState([]);
   const PF = process.env.REACT_APP_PUBLIC_FOLDER;
-  // fetch all followings
-  useEffect(() => {
-    const getFollowings = async () => {
-      const res = await axios.get("/followings/" + currentId);
-      setFollowings(res.data);
-      console.log("fowngs", res.data);
-    };
-    getFollowings();
-  }, [currentId]);
 
-  // get online followings
   useEffect(() => {
-    setOnlineFollowings(followings.filter((f) => onlineUsers.includes(f._id)));
-    console.log(onlineUsers);
-  }, [followings, onlineUsers]);
+    const getOnlineFollowingsUsers = async () => {
+      const res = await axios.post("/onlinefollowingusers",
+        { onlineUsers },
+        { headers: authHeader() },
+      );
+      setOnlineFollowings(prev => [...res.data]);
+    }
+    if (Array.isArray(onlineUsers)) {
+      if (onlineUsers.length > 0) {
+        getOnlineFollowingsUsers();
+      }
+      if (onlineUsers.length === 0) {
+        setOnlineFollowings([]);
+      }
+    }
+  }, [onlineUsers])
 
   const handleClick = async (user) => {
     try {
       const res = await axios.get(
-        `conversation/find/${currentId}/${user._id}`
+        `conversation/find/${currentId}/${user._id}`,
+        { headers: authHeader(), }
       );
       setCurrentChat(res.data);
     } catch (err) {
@@ -34,9 +38,10 @@ const ChatOnline = ({ onlineUsers, currentId, setCurrentChat, newMessage }) => {
   };
   return (
     <div className="chat-online">
-      {onlineFollowings.map((o) => (
+      {onlineFollowings.length > 0 && onlineFollowings.map((o) => (
         <div
           className="chat-online-friend"
+          key={o._id}
           onClick={() => {
             handleClick(o);
           }}
@@ -44,7 +49,7 @@ const ChatOnline = ({ onlineUsers, currentId, setCurrentChat, newMessage }) => {
           <div className="chat-online-img-container">
             <img
               className="chat-online-img"
-              src={o?.pic ? o.rofilePicture : PF + "/api/profiles/avatar.png"}
+              src={o?.pic ? o.pic : PF + "/api/profiles/avatar.png"}
               alt=""
             />
             <div className="chat-online-badge"></div>

@@ -1,12 +1,12 @@
 import React, { useState, useContext } from "react";
 import { Link, useHistory, useRouteMatch } from "react-router-dom";
-import { UserContext } from '../../App'
+import { UserContext } from '../../context/UserContext/UserContext'
 import M from "materialize-css";
 import annyang from 'annyang'
 import GoogleBtn from "../GoogleBtn/GoogleBtn";
 
 const Signin = () => {
-  const { state, dispatch } = useContext(UserContext)
+  const { userState, userDispatch } = useContext(UserContext)
   const history = useHistory();
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
@@ -42,7 +42,7 @@ const Signin = () => {
           console.log(data.token);
           localStorage.setItem("jwt", data.token);
           localStorage.setItem("user", JSON.stringify(data.user));
-          dispatch({ type: "USER", payload: data.user })
+          userDispatch({ type: "USER", payload: data.user })
           M.toast({ html: "signed in success", classes: "#1976d2 blue darken-2" });
           history.push("/");
         }

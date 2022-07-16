@@ -13,7 +13,7 @@ const Conversation = ({ conversation, currentUser }) => {
       try {
         const res = await axios("/user/" + friendId,
           { headers: { "Authorization": "Bearer " + localStorage.getItem("jwt") } });
-        setUser(res.data);
+        setUser(res.data.user[0]);
       } catch (err) {
         console.log(err);
       }
@@ -24,11 +24,11 @@ const Conversation = ({ conversation, currentUser }) => {
     return (
       <div className="conversation-item">
         <img
-          src={user?.user.pic ? user.user.pic : PF+"profiles/avatar.png"}
+          src={user?.pic ? user.pic : PF+"profiles/avatar.png"}
           alt=""
           className="conversation-img"
         />
-        <span className="conversation-name">{ user?.user.name }</span>
+        <span className="conversation-name">{ user?.name }</span>
       </div>
     );
 }

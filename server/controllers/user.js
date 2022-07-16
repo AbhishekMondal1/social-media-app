@@ -264,14 +264,64 @@ const getAllFollowings = async (req, res) => {
     }
 };
 
+// get all following users of a user
+const getAllFollowingUsers = async (req, res) => {
+  const userid = mongoose.Types.ObjectId(req.user._id);
+  try {
+      const followingUsersIds = await User.aggregate([
+        {
+          '$match': {
+            '_id': userid,
+          }
+        }, {
+          '$project': {
+            'following': 1
+          }
+        }
+      ])
+      res.json(followingUsersIds);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+
+}
+
+const getOnlineUsersDetails = async (req, res) => {
+  try{
+    const ids = req.body.onlineUsers.map(id => mongoose.Types.ObjectId(id));
+    const online = await User.aggregate([
+    {
+        $match: {
+        "_id": {
+          $in: ids
+        }
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        username: 1,
+        name: 1,
+        pic: 1,
+      },
+    }
+  ])
+  res.json(online);
+} catch (err) {
+  res.status(500).json({err:"Failed to get user data"});
+}
+}
+
 module.exports = {
-    getAuthUser,
-    getUser,
+  getAuthUser,
+  getUser,
     followUser,
     unfollowUser,
     searchUsers,
     editProfile,
     updateProfilePicture,
     deleteProfilePicture,
-    getAllFollowings
+    getAllFollowings,
+    getAllFollowingUsers,
+    getOnlineUsersDetails,
 }

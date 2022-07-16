@@ -1,6 +1,6 @@
-export const initialState = null
+export const initialUserState = null
 
-export const reducer = (state, action) => {
+export const userReducer = (state, action) => {
     if (action.type === "USER") {
         return action.payload
     }

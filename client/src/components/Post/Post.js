@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { UserContext } from "../../App";
+import { UserContext } from "../../context/UserContext/UserContext";
 import { Link } from 'react-router-dom'
 import moment from 'moment'
 import { authHeader } from "../../services/authHeaderConfig";
@@ -10,7 +10,7 @@ import axios from "axios";
 const Post = ({ item, individualpost, data, setData, singlePostData, setSinglePostData }) => {
     const [loading, setLoading] = useState(true)
     const [comment, setComment] = useState("")
-    const { state, dispatch } = useContext(UserContext)
+    const { userState, userDispatch } = useContext(UserContext)
     const likeBtn = useRef(null)
 
     const likeClick = (id) => {
@@ -133,7 +133,7 @@ const Post = ({ item, individualpost, data, setData, singlePostData, setSinglePo
             <div tabIndex={0} style={{ padding: "5px", display: "flex", justifyContent: "space-between" }}>
                 <Link
                     to={
-                        item.postedBy[0]._id !== state?._id
+                        item.postedBy[0]._id !== userState?._id
                             ? "/profile/" + item.postedBy[0]._id
                             : "/profile"
                     }
@@ -154,7 +154,7 @@ const Post = ({ item, individualpost, data, setData, singlePostData, setSinglePo
                     </div>
                 </Link>
                 <span>
-                    {item.postedBy[0]._id === state?._id && (
+                    {item.postedBy[0]._id === userState?._id && (
                         <i
                             className="material-icons"
                             style={{

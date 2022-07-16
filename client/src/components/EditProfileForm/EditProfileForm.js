@@ -3,7 +3,7 @@ import { authHeader } from '../../services/authHeaderConfig';
 import Tooltip from '../Tooltip/Tooltip';
 import "./EditProfileForm.css";
 import axios from 'axios';
-import { UserContext } from "../../App"
+import { UserContext } from "../../context/UserContext/UserContext";
 
 const EditProfileForm = () => {
   const [details, setDetails] = useState({
@@ -19,7 +19,7 @@ const EditProfileForm = () => {
     bioerr: "",
     emailerr: "",
   })
-  const { state, dispatch } = useContext(UserContext)
+  const { userState, userDispatch } = useContext(UserContext)
   const [image, setImage] = useState("");
   const inputFileRef = useRef()
 
@@ -76,8 +76,7 @@ const EditProfileForm = () => {
     e.preventDefault()
     const name_regex = /^[a-zA-Z ]{2,30}$/;
     const username_regex = /^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/igm;
-    // const bio_regex = /^.{2,200}$/;
-    const bio_regex = /^.*[\S\n\t\s]{1,200}$/im; // /^.{2,200}$/;
+    const bio_regex = /^.*[\S\n\t\s]{1,200}$/im;
     const email_regex = /^(?:(?:[\w`~!#$%^&*\-=+;:{}'|,?\/]+(?:(?:\.(?:"(?:\\?[\w`~!#$%^&*\-=+;:{}'|,?\/\.()<>\[\] @]|\\"|\\\\)*"|[\w`~!#$%^&*\-=+;:{}'|,?\/]+))*\.[\w`~!#$%^&*\-=+;:{}'|,?\/]+)?)|(?:"(?:\\?[\w`~!#$%^&*\-=+;:{}'|,?\/\.()<>\[\] @]|\\"|\\\\)+"))@(?:[a-zA-Z\d\-]+(?:\.[a-zA-Z\d\-]+)*|\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\])$/;
     let inputError = false;
     if (name_regex.test(details.name) === false) {
@@ -142,7 +141,7 @@ const EditProfileForm = () => {
           localStorage.setItem(
             "user",
             JSON.stringify({
-              ...state,
+              ...userState,
               name: res.updatedUser[0].name,
               username: res.updatedUser[0].username,
               bio: res.updatedUser[0].bio,
@@ -150,7 +149,7 @@ const EditProfileForm = () => {
               pic: res.updatedUser[0].pic,
             })
           );
-          dispatch({ type: "USER", payload: res.updatedUser[0] })
+          userDispatch({ type: "USER", payload: res.updatedUser[0] })
         })
         .catch(err => {
           console.log(err)
@@ -193,7 +192,7 @@ const EditProfileForm = () => {
               localStorage.setItem(
                 "user",
                 JSON.stringify({
-                  ...state,
+                  ...userState,
                   name: res.updatedUser[0].name,
                   username: res.updatedUser[0].username,
                   bio: res.updatedUser[0].bio,
@@ -201,7 +200,7 @@ const EditProfileForm = () => {
                   pic: res.updatedUser[0].pic,
                 })
               );
-            dispatch({ type: "UPDATEPIC", payload: res.updatedUser[0].pic });
+            userDispatch({ type: "UPDATEPIC", payload: res.updatedUser[0].pic });
             });
         })
         .catch((err) => {
@@ -232,7 +231,7 @@ const EditProfileForm = () => {
           localStorage.setItem(
             "user",
             JSON.stringify({
-              ...state,
+              ...userState,
               name: res.updatedUser[0].name,
               username: res.updatedUser[0].username,
               bio: res.updatedUser[0].bio,
@@ -240,7 +239,7 @@ const EditProfileForm = () => {
               pic: res.updatedUser[0].pic,
             })
           );
-        dispatch({ type: "UPDATEPIC", payload: res.updatedUser[0].pic });
+        userDispatch({ type: "UPDATEPIC", payload: res.updatedUser[0].pic });
       })
       .catch(err => {
         console.log("err", err);
@@ -253,7 +252,7 @@ const EditProfileForm = () => {
       <article className="main-article">
         <div className="avatar-wrapper">
           <div>
-            <img className="fimage" src={state?.pic || details.pic} />
+            <img className="fimage" src={userState?.pic || details.pic} />
           </div>
           <div className="avatar-btn">
             <button onClick={handleBrowseFile}>

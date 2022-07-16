@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { UserContext } from "../../App";
 import { authHeader } from "../../services/authHeaderConfig";
 import axios from "axios";
@@ -11,7 +11,6 @@ const SubscribeUserPost = () => {
   const [hasMorePages, setHasMorePages] = useState(true)
   const [loading, setLoading] = useState(true);
   const morepostRef = useRef()
-  const { state, dispatch } = useContext(UserContext);
   useEffect(() => {
     setLoading(true)
     axios.get(`/getsubpost?page=${page}`, {

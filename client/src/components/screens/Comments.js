@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { UserContext } from "../../App";
+import { UserContext } from "../../context/UserContext/UserContext";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import moment from "moment";
@@ -13,9 +13,10 @@ import axios from "axios";
 const Comments = ({ setData, data }) => {
   const [commentsdata, setCommentsData] = useState([]);
   const [page, setPage] = useState(1);
-  const [newpage, setnewPage] = useState(true);
+  const [newpage, setnewPage] = useState(false);
+  const [fetching, setFetching] = useState(false);
   const [comment, setComment] = useState("")
-  const { state, dispatch } = useContext(UserContext);
+  const { userState, userDispatch } = useContext(UserContext);
   const { postid } = useParams();
 
   useEffect(() => {
@@ -24,13 +25,13 @@ const Comments = ({ setData, data }) => {
     })
       .then((res) => res.data)
       .then((result) => {
-        console.log(result)
-        console.log(result.comments);
-        setCommentsData(result.comments);
+        setCommentsData(result.comments[0]);
+        setnewPage(false)
       });
   }, [page, newpage]);
 
-  const makeComment = (text, postId) => {
+  const makeComment = async (text, postId) => {
+    setFetching(true)
     axios.put('/comment', {
       text,
       postId
@@ -40,8 +41,14 @@ const Comments = ({ setData, data }) => {
       })
       .then(res => res.data)
       .then(result => {
-        setnewPage(true)
-      }).catch(err => {
+        const commentsState = []
+        commentsState.push(commentsdata)
+        const newComments = [result.c[0]].concat(commentsState[0].comments)
+        commentsState[0].comments = newComments.slice(0)
+        setFetching(false)
+        setCommentsData(commentsState[0])
+      })
+      .catch(err => {
         console.log(err)
       })
   }
@@ -53,7 +60,6 @@ const Comments = ({ setData, data }) => {
     })
       .then((res) => res.json)
       .then((result) => {
-        console.log("res");
         console.log(result._id);
         const newData = data.filter((item) => {
           console.log(item._id);
@@ -70,23 +76,25 @@ const Comments = ({ setData, data }) => {
   }
   return (
     <>
-      {commentsdata?._id === undefined ? (
+      {commentsdata?._id === "undefined" ? (
         <div class="lds-heart">
           <div></div>
         </div>
       ) :
         (
-          <div className="cards comments-card postcard " key={commentsdata._id}>
+          <div className="cards comments-card postcard " key={commentsdata?._id}>
             <div className="cards-content">
-              <div className="comments-section">
-                {commentsdata.comments.map((record) => {
+              {commentsdata?.comments?._id === "undefined"
+              ? "" : 
+              (<div className="comments-section">
+                {commentsdata?.comments?.map((record) => {
                   return (
                     <>
                       <div className="comment-item">
                         <span className="comment-avatar">
-                          <Link to={"/profile/" + record.postedBy._id}>
+                          <Link to={"/profile/" + record.postedBy[0]?._id}>
                             <img
-                              src={record.postedBy.pic}
+                              src={record.postedBy[0]?.pic}
                               alt=""
                               className="circle"
                               style={{
@@ -100,9 +108,9 @@ const Comments = ({ setData, data }) => {
                           </Link>
                         </span>
                         <div className="comment-text-area">
-                          <Link to={"/profile/" + record.postedBy._id}>
+                          <Link to={"/profile/" + record.postedBy[0]?._id}>
                             <span className="comment-username" style={{ fontWeight: "500" }}>
-                              {record.postedBy.username}
+                              {record.postedBy[0]?.username}
                             </span>
                           </Link>
                           <span className="comment-text">
@@ -122,8 +130,10 @@ const Comments = ({ setData, data }) => {
                       </div>
                     </>
                   );
-                }).reverse()}
-                {commentsdata.comments.length > 4 ? (
+                })}
+                <div>
+                </div>
+                {commentsdata?.hasMoreComments ? (
                   <div className="addmore">
                     <button className="loadbtn" onClick={pageChange}>
                       <img src={addmore} />
@@ -132,7 +142,7 @@ const Comments = ({ setData, data }) => {
                 ) : (
                   ""
                 )}
-              </div>
+              </div>)}
               <form
                 onSubmit={(e) => {
                   e.preventDefault();

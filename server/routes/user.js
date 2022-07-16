@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const isAuthorized = require("../middleware/isAuthorized");
 const { getAuthUser, getUser, followUser, unfollowUser, searchUsers, editProfile,
-  updateProfilePicture, deleteProfilePicture, getAllFollowings } = require("../controllers/user");
+  updateProfilePicture, deleteProfilePicture, getAllFollowings, getAllFollowingUsers, getOnlineUsersDetails } = require("../controllers/user");
 
 // get logged in user data
 router.get('/auth/user', isAuthorized, getAuthUser);
@@ -30,5 +30,11 @@ router.delete("/updatepic", isAuthorized, deleteProfilePicture);
 
 // get all followings
 router.get("/followings/:userId", isAuthorized, getAllFollowings);
+
+// get all followings
+router.get("/followingusers/:userId", isAuthorized, getAllFollowingUsers);
+
+// get online followings
+router.post("/onlinefollowingusers", isAuthorized, getOnlineUsersDetails);
 
 module.exports = router;

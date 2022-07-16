@@ -4,9 +4,10 @@ import './chatMessenger.css';
 import Conversation from '../../conversation/Conversation';
 import Message from '../../messages/Message';
 import ChatOnline from '../../chatOnline/ChatOnline';
-import { UserContext } from '../../../App';
 import { io } from "socket.io-client";
 import { authHeader } from '../../../services/authHeaderConfig';
+import { ChatContext } from '../../../context/ChatContext/ChatContext';
+import { UserContext } from '../../../context/UserContext/UserContext';
 
 const ChatMessenger = () => {
   const [conversations, setConversations] = useState([]);
@@ -14,11 +15,10 @@ const ChatMessenger = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [arrivalMessage, setArrivalMessage] = useState(null);
-  const [onlineUsers, setOnlineUsers] = useState([]);
   const socket = useRef();
-  const { state, dispatch } = useContext(UserContext);
   const scrollRef = useRef();
-  console.log(state)
+  const { userState, userDispatch } = useContext(UserContext);
+  const { chatState, chatDispatch } = useContext(ChatContext);
   useEffect(() => {
     arrivalMessage &&
       currentChat?.members.includes(arrivalMessage.sender) &&
@@ -27,7 +27,12 @@ const ChatMessenger = () => {
 
   // establish Socket connection
   useEffect(() => {
-    socket.current = io("ws://localhost:9010");
+    const token = localStorage.getItem('jwt');
+    socket.current = io("ws://localhost:9010", {
+       query: { token },
+       autoConnect: false,      
+      });
+      socket.current.connect();
     socket.current.on("getMessage", (data) => {
       setArrivalMessage({
         sender: data.senderId,
@@ -37,16 +42,36 @@ const ChatMessenger = () => {
     });
   }, []);
 
-  // Get Online users list
+  // Get Online users userId list
   useEffect(() => {
-    socket.current.emit("addUser", state?._id);
-    socket.current.on("getUsers", (users) => {
-      setOnlineUsers(
-        state?.following.filter((f) => users.some((u) => u.userId === f))
-      );
+    socket.current.emit("addUser", userState?._id);
+    socket.current.on("getUsers", (onlineUsersIds) => {
+      chatDispatch({
+        type: "SET_ONLINE_USERS",
+        payload: {
+          onlineUsersIds: onlineUsersIds,
+        }
+      });
     });
-    console.log(onlineUsers);
-  }, [state, newMessage]);
+
+    socket.current.on("followerConnected", userId => {
+      chatDispatch({
+        type: "ADD_ONLINE_USER",
+        payload: {
+          userId: userId,
+        }
+      });
+    })
+    
+    socket.current.on("followerDisconnected", async (userId) => {
+      chatDispatch({
+        type: "REMOVE_ONLINE_USER",
+        payload: {
+          userId: userId[0],
+        }
+      });
+    })
+  }, [userState]);
 
   useEffect(() => {
     socket.current?.on("welcome", (message) => {
@@ -58,7 +83,7 @@ const ChatMessenger = () => {
   useEffect(() => {
     const getConversations = async () => {
       try {
-        const res = await axios.get("/conversation/" + state._id,
+        const res = await axios.get("/conversation/" + userState._id,
           { headers: authHeader(), });
         setConversations(res.data);
         console.log(res.data);
@@ -67,10 +92,9 @@ const ChatMessenger = () => {
       }
     };
     getConversations();
-  }, [state]);
+  }, [userState]);
 
-  // get current conversation msg
-
+  // get current conversation msg  
   useEffect(() => {
     const getMessages = async () => {
       try {
@@ -92,17 +116,17 @@ const ChatMessenger = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const message = {
-      sender: state._id,
+      sender: userState._id,
       text: newMessage,
       conversationId: currentChat._id,
     };
 
     const receiverId = currentChat.members.find(
-      (member) => member !== state._id
+      (member) => member !== userState._id
     );
 
     socket.current.emit("sendMessage", {
-      senderId: state._id,
+      senderId: userState._id,
       receiverId,
       text: newMessage,
     });
@@ -123,7 +147,7 @@ const ChatMessenger = () => {
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
+  
   return (
     <>
       <div className="messenger">
@@ -135,7 +159,7 @@ const ChatMessenger = () => {
             />
             {conversations.map((c) => (
               <div onClick={() => setCurrentChat(c)}>
-                <Conversation conversation={c} currentUser={state} />
+                <Conversation conversation={c} currentUser={userState} />
               </div>
             ))}
           </div>
@@ -147,7 +171,7 @@ const ChatMessenger = () => {
                 <div className="chat-box-top">
                   {messages.map((m) => (
                     <div ref={scrollRef}>
-                      <Message message={m} own={m.sender === state._id} />
+                      <Message message={m} own={m.sender === userState._id} />
                     </div>
                   ))}
                 </div>
@@ -173,8 +197,8 @@ const ChatMessenger = () => {
         <div className="chat-online">
           <div className="chat-online-container">
             <ChatOnline
-              onlineUsers={onlineUsers}
-              currentId={state?._id}
+              onlineUsers={chatState.usersOnline}
+              currentId={userState?._id}
               setCurrentChat={setCurrentChat}
               newMessage={newMessage}
             />

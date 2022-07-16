@@ -1,6 +1,6 @@
 import React, { useContext, useRef, useEffect, useState } from 'react'
 import { Link, useHistory } from 'react-router-dom'
-import { UserContext } from '../App'
+import { UserContext } from '../context/UserContext/UserContext'
 import "./navbar.css";
 import M from 'materialize-css';
 import searchicon from "./icons/search.svg";
@@ -13,14 +13,13 @@ const NavBar = () => {
   const searchModal = useRef(null)
   const [search, setSearch] = useState('')
   const [userDetails, setUserDetails] = useState([])
-  const { state, dispatch } = useContext(UserContext)
+  const { userState, userDispatch } = useContext(UserContext)
   const history = useHistory()
   useEffect(() => {
     M.Modal.init(searchModal.current)
   }, [])
   const renderList = () => {
-    if (state) {
-      console.log(state)
+    if (userState) {
       return (
         // [
         <>
@@ -39,7 +38,7 @@ const NavBar = () => {
           >
             <Link to="/profile">
               <img
-                src={state.pic}
+                src={userState.pic}
                 alt=""
                 className="circle"
                 style={{
@@ -94,7 +93,7 @@ const NavBar = () => {
               className="btnexit"
               onClick={() => {
                 localStorage.clear();
-                dispatch({ type: "CLEAR" });
+                userDispatch({ type: "CLEAR" });
                 history.push("/signin");
               }}
             >
@@ -134,7 +133,7 @@ const NavBar = () => {
   return (
     <nav>
       <div className="nav-wrapper white">
-        <Link to={state ? "/" : "/signin"} className="brand-logo left">
+        <Link to={userState ? "/" : "/signin"} className="brand-logo left">
           Connect All
         </Link>
         <ul id="nav-mobile" className="right">
@@ -157,7 +156,7 @@ const NavBar = () => {
           <ul className="collection">
             {userDetails.map(item => {
               return (
-                <Link to={item._id !== state._id ? "/profile/" + item._id : "/profile"} onClick={() => {
+                <Link to={item._id !== userState._id ? "/profile/" + item._id : "/profile"} onClick={() => {
                   M.Modal.getInstance(searchModal.current).close()
                   setSearch("")
                 }}>

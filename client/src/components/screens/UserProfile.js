@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext, useRef } from "react";
-import { UserContext } from "../../App";
+import { UserContext } from "../../context/UserContext/UserContext";
 import { useParams, Link } from 'react-router-dom'
 import { authHeader } from "../../services/authHeaderConfig";
 import SkeletonPostGridLoader from "../SkeletonPostGridLoader/SkeletonPostGridLoader";
@@ -7,7 +7,7 @@ import axios from "axios";
 
 const Profile = () => {
   const [userProfile, setUserProfile] = useState([])
-  const { state, dispatch } = useContext(UserContext);
+  const { userState, userDispatch } = useContext(UserContext);
   const { userid } = useParams()
   const [showFollow, setShowFollow] = useState()
 
@@ -38,7 +38,6 @@ const Profile = () => {
     })
       .then(res => res.data)
       .then(({ hasMorePages, postlists, totalNumberOfPosts }) => {
-        console.log(postlists)
         setPostData([...postdata, ...postlists])
         setHasMorePages(hasMorePages)
         setTOtalNumberOfPosts(totalNumberOfPosts)
@@ -83,10 +82,9 @@ const Profile = () => {
           ...prev,
           totalFollowers: prev.totalFollowers + 1,
         }))
-        console.log(state.totalFollowing)
-        dispatch({
+        userDispatch({
           type: "UPDATE_FOLLOWING",
-          payload: { totalFollowing: state.totalFollowing + 1 }
+          payload: { totalFollowing: userState.totalFollowing + 1 }
         });
         const localStorageUser = JSON.parse(localStorage.getItem("user"))
         localStorageUser.totalFollowing = localStorageUser.totalFollowing + 1
@@ -105,18 +103,15 @@ const Profile = () => {
     })
       .then((res) => res.data)
       .then((data) => {
-        console.log("data loggedin user", data);
-        console.log("userprofilenm", userProfile); 
 
         setShowFollow(!data.follows)
         setUserProfile(prev => ({
           ...prev,
           totalFollowers: prev.totalFollowers - 1,
         }))
-        console.log(state.totalFollowing)
-        dispatch({
+        userDispatch({
           type: "UPDATE_FOLLOWING",
-          payload: { totalFollowing: state.totalFollowing - 1 }
+          payload: { totalFollowing: userState.totalFollowing - 1 }
         });
         const localStorageUser = JSON.parse(localStorage.getItem("user"))
         localStorageUser.totalFollowing = localStorageUser.totalFollowing - 1

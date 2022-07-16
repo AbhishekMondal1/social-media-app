@@ -1,8 +1,10 @@
 const express = require('express')
 const app = express()
 const mongoose = require('mongoose')
+const jwt = require('jsonwebtoken');
 const PORT = process.env.PORT || 5000
 const { MONGOURI } = require('./config/keys')
+const { JWT_SECRET } = require('./config/keys')
 const cors = require('cors')
 const bodyParser = require('body-parser')
 const { urlencoded, json } = require('body-parser')
@@ -44,6 +46,7 @@ app.use(passport.session());
 const conversationRoute = require('./routes/conversations')
 const messageRoute = require('./routes/messages')
 require('./models/user')
+const User = require('./models/user')
 require('./models/post')
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
@@ -94,6 +97,133 @@ if (process.env.NODE_ENV == "production") {
     res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'))
   })
 }
+
+// --------- socket.io ----------
+const io = require("socket.io")(9010, {
+  cors: {
+    origin: "https://localhost:3005",
+  },
+});
+
+let onlineUsers = [];
+
+// add user to onlineUsers list
+const addUser = (userId, socketId) => {
+  !onlineUsers.some((user) => user.userId === userId) &&
+    onlineUsers.push({ userId, socketId });
+  console.log(onlineUsers);
+};
+
+// remove user from onlineUsers list
+const removeUser = (socketId) => {
+  onlineUsers = onlineUsers.filter((user) => user.socketId !== socketId);
+  console.log(onlineUsers);
+};
+
+// get userid of msg receiver
+const getUser = (userId) => {
+  return onlineUsers.find((user) => user.userId === userId);
+};
+
+const getUserSocket = async (userId) => {
+  return await onlineUsers.find((user) => user.userId == userId);
+};
+
+const getUserIdBySocketId = async (socketId) => {
+  return await onlineUsers.find((user) => user.socketId == socketId);
+};
+
+const findOnlinefollowingUsers = async (userId) => {
+  const userid = mongoose.Types.ObjectId(userId);
+  const followingUsersIds = await User.aggregate([
+    {
+      '$match': {
+        '_id': userid,
+      }
+    }, {
+      '$project': {
+        'following': 1
+      }
+    }
+  ])
+  if (followingUsersIds[0]) {
+    const onlineFollowingUsersIds = followingUsersIds[0].following.filter((f) => onlineUsers.some((u) => u.userId == f))
+    return onlineFollowingUsersIds
+  }
+}
+
+const findOnlinefollowerUsers = async (userId) => {
+  const userid = mongoose.Types.ObjectId(userId);
+  const followerUsersIds = await User.aggregate([
+    {
+      '$match': {
+        '_id': userid,
+      }
+    }, {
+      '$project': {
+        'followers': 1
+      }
+    }
+  ])
+  if (followerUsersIds[0]) {
+    const onlineFollowerUsersIds = followerUsersIds[0].followers.filter((f) => onlineUsers.some((u) => u.userId == f))
+    return onlineFollowerUsersIds
+  }
+}
+
+io.on("connection", (socket) => {
+  // when connect
+  jwt.verify(socket.handshake.query.token, JWT_SECRET, (err, decoded) => {
+    if (err) {
+      console.log("err", err);
+    } else {
+      //take userId and socketId from user
+      socket.on("addUser", async (userId) => {
+        if (userId != null) {
+          addUser(userId, socket.id);
+          const onlineUsersIds = await findOnlinefollowingUsers(userId)
+          const usersocket = getUser(userId);
+          io.to(usersocket?.socketId).emit("getUsers", onlineUsersIds);
+
+          const onlineFollowersIds = await findOnlinefollowerUsers(userId)
+          onlineFollowersIds?.forEach(async (followerId) => {
+            const followersocket = await getUserSocket(followerId);
+            io.to(followersocket?.socketId).emit("followerConnected", [userId]);
+          })
+        }
+      });
+
+      // send and get message
+      socket.on("sendMessage", ({ senderId, receiverId, text }) => {
+        try {
+          const user = getUser(receiverId);
+          io.to(user?.socketId).emit("getMessage", {
+            senderId,
+            text,
+          });
+        } catch (error) {
+          console.log("Error occured", error)
+        }
+      });
+
+      // when disconnect remove the user from user list and fetch new onlineUsers list
+      socket.on("disconnect", async () => {
+        const user = await getUserIdBySocketId(socket.id);
+        if (user?.userId != null) {
+          const userId = user.userId;
+          const onlineFollowersIds = await findOnlinefollowerUsers(userId)
+          onlineFollowersIds?.forEach(async (followerId) => {
+            const followersocket = await getUserSocket(followerId);
+            io.to(followersocket?.socketId).emit("followerDisconnected", [userId]);
+          })
+          removeUser(socket.id);
+        }
+      });
+    }
+  })
+}
+);
+
 
 run()
 

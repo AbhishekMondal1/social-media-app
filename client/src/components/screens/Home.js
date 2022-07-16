@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { UserContext } from '../../App';
+import { UserContext } from '../../context/UserContext/UserContext';
 import Post from "../Post/Post";
 import Stories from "./Stories";
 import { authHeader } from '../../services/authHeaderConfig';
@@ -12,7 +12,7 @@ const Home = () => {
   const [hasMorePages, setHasMorePages] = useState(true)
   const [loading, setLoading] = useState(true)
   const morepostRef = useRef()
-  const { state, dispatch } = useContext(UserContext)
+  const { userState, userDispatch } = useContext(UserContext)
 
   useEffect(() => {
     axios.get("/auth/user", {
@@ -26,7 +26,7 @@ const Home = () => {
           console.log("ERROR")
         } else {
           localStorage.setItem("user", JSON.stringify(res.data.user));
-          dispatch({ type: "USER", payload: res.data.user })
+          userDispatch({ type: "USER", payload: res.data.user })
         }
       })
       .catch(err => {

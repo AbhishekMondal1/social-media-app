@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { UserContext } from "../../App";
+import { UserContext } from "../../context/UserContext/UserContext";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { authHeader } from "../../services/authHeaderConfig";
@@ -10,7 +10,7 @@ import Comments from "./Comments";
 
 const UserPosts = () => {
   const [singlePostData, setSinglePostData] = useState([])
-  const { state, dispatch } = useContext(UserContext)
+  const { userState, userDispatch } = useContext(UserContext)
   const { postid } = useParams()
 
   useEffect(() => {
