@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Link, useHistory } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import M from "materialize-css";
 const AdminSignup = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
@@ -61,7 +61,7 @@ const AdminSignup = () => {
           M.toast({ html: data.error, classes: "#ff1744 red accent-3" });
         } else {
           M.toast({ html: data.message, classes: "#1976d2 blue darken-2" });
-          history.push("/signin");
+          navigate.push("/signin");
         }
       })
       .catch((err) => {

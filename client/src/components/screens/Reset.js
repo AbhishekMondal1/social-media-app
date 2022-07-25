@@ -1,9 +1,9 @@
 import React, { useState, useContext } from "react";
-import { Link, useHistory, useRouteMatch } from "react-router-dom";
+import { Link, useNavigate, useRouteMatch } from "react-router-dom";
 
 import M from "materialize-css";
 const Reset = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const PostData = () => {
     if (
@@ -35,7 +35,7 @@ const Reset = () => {
             html: data.message,
             classes: "#1976d2 blue darken-2",
           });
-          history.push("/signin");
+          navigate.push("/signin");
         }
       })
       .catch((err) => {

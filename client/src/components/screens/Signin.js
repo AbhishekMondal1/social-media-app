@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { Link, useHistory, useRouteMatch } from "react-router-dom";
+import { Link, useNavigate, useRouteMatch } from "react-router-dom";
 import { UserContext } from '../../context/UserContext/UserContext'
 import M from "materialize-css";
 import annyang from 'annyang'
@@ -7,7 +7,7 @@ import GoogleBtn from "../GoogleBtn/GoogleBtn";
 
 const Signin = () => {
   const { userState, userDispatch } = useContext(UserContext)
-  const history = useHistory();
+  const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const PostData = (e) => {
@@ -44,7 +44,7 @@ const Signin = () => {
           localStorage.setItem("user", JSON.stringify(data.user));
           userDispatch({ type: "USER", payload: data.user })
           M.toast({ html: "signed in success", classes: "#1976d2 blue darken-2" });
-          history.push("/");
+          navigate.push("/");
         }
       })
       .catch((err) => {

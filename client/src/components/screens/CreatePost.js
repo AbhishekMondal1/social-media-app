@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import M from "materialize-css";
 import { authHeader } from "../../services/authHeaderConfig";
 import axios from "axios";
 
 const CreatePost = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const [title, setTitle] = useState("")
   const [body, setBody] = useState("")
   const [image, setImage] = useState("")
@@ -29,7 +29,7 @@ const CreatePost = () => {
               html: "Created post successfully",
               classes: "#1976d2 blue darken-2",
             });
-            history.push("/");
+            navigate.push("/");
           }
         })
         .catch((err) => {

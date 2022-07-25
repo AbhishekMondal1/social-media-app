@@ -1,9 +1,9 @@
 import React, { useState, useContext } from "react";
-import { Link, useHistory, useRouteMatch,useParams } from "react-router-dom";
+import { Link, useNavigate, useRouteMatch,useParams } from "react-router-dom";
 
 import M from "materialize-css";
 const NewPassword = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
     const [password, setPassword] = useState("");
     const { token } = useParams()
     console.log(token);
@@ -29,7 +29,7 @@ const NewPassword = () => {
             html: data.message,
             classes: "#1976d2 blue darken-2",
           });
-          history.push("/signin");
+          navigate.push("/signin");
         }
       })
       .catch((err) => {
