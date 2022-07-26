@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import { Link, useNavigate, useRouteMatch,useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 
-import M from "materialize-css";
 const NewPassword = () => {
   const navigate = useNavigate();
     const [password, setPassword] = useState("");
@@ -23,13 +23,10 @@ const NewPassword = () => {
       .then((data) => {
         console.log(data);
         if (data.error) {
-          M.toast({ html: data.error, classes: "#ff1744 red accent-3" });
+          toast.error(data.error);
         } else {
-          M.toast({
-            html: data.message,
-            classes: "#1976d2 blue darken-2",
-          });
-          navigate.push("/signin");
+          toast.success(data.message);
+          navigate("/signin");
         }
       })
       .catch((err) => {

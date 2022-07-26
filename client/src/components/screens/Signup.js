@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import M from 'materialize-css'
+import { toast } from "react-toastify";
 import GoogleBtn from "../GoogleBtn/GoogleBtn";
 
 const Signup = () => {
@@ -44,7 +44,7 @@ const Signup = () => {
     if (!
       /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
         .test(email)) {
-      M.toast({ html: "Invalid Email", classes: "#ff1744 red accent-3" });
+      toast.error("Invalid Email")
       return;
     }
     else if (
@@ -52,7 +52,7 @@ const Signup = () => {
         password
       )
     ) {
-      M.toast({ html: "<h6>password must include @,#,% or &special characters<div>atleast 1 uppercase, lowercase, number</div>", classes: "#ff1744 red accent-3" });
+      toast.error(<p>password must include @,#,% or & special characters<div>atleast 1 uppercase, lowercase, number</div></p>)
       return;
     }
     fetch("/signup", {
@@ -71,17 +71,15 @@ const Signup = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.error) {
-          M.toast({ html: data.error, classes: "#ff1744 red accent-3" });
+          toast.error(data.error)
         } else {
-          M.toast({ html: data.message, classes: "#1976d2 blue darken-2" });
-          navigate.push('/signin')
+          toast.success(data.message)
+          navigate('/signin')
         }
       }).catch(err => {
         console.log(err)
       })
-
-
-  }
+}
 
   return (
     <div className="mycard">

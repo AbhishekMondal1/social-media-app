@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { UserContext } from "../../App";
+import { UserContext } from "../../context/UserContext/UserContext";
 import { useParams,Link } from "react-router-dom";
 import moment from "moment";
 
@@ -8,7 +8,7 @@ const AdminDashboard = () => {
     const [totalUsers, setTotalUsers] = useState([])
     const [data, setData] = useState([])
     const [postData, setPotsData] = useState([]);
-    const { state, dispatch } = useContext(UserContext);
+    const { userState, userDispatch } = useContext(UserContext);
     const { postid } = useParams();
     useEffect(() => {
         fetch('/totalusers',{

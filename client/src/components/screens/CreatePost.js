@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import M from "materialize-css";
+import { toast } from "react-toastify";
 import { authHeader } from "../../services/authHeaderConfig";
 import axios from "axios";
 
@@ -23,13 +23,10 @@ const CreatePost = () => {
         .then((res) => res.data)
         .then((data) => {
           if (data.error) {
-            M.toast({ html: data.error, classes: "#ff1744 red accent-3" });
+            toast.error(data.error);
           } else {
-            M.toast({
-              html: "Created post successfully",
-              classes: "#1976d2 blue darken-2",
-            });
-            navigate.push("/");
+            toast.success("Post created successfully");
+            navigate("/");
           }
         })
         .catch((err) => {

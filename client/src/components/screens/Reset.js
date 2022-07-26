@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import { Link, useNavigate, useRouteMatch } from "react-router-dom";
+import { toast } from 'react-toastify';
 
-import M from "materialize-css";
 const Reset = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -11,10 +11,7 @@ const Reset = () => {
         email
       )
     ) {
-      M.toast({
-        html: "Invalid Email",
-        classes: "#ff1744 red accent-3",
-      });
+      toast.error("Invalid Email");
       return;
     }
     fetch("/reset-password", {
@@ -29,13 +26,10 @@ const Reset = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.error) {
-          M.toast({ html: data.error, classes: "#ff1744 red accent-3" });
+          toast.error(data.error);
         } else {
-          M.toast({
-            html: data.message,
-            classes: "#1976d2 blue darken-2",
-          });
-          navigate.push("/signin");
+          toast.success(data.message);
+          navigate("/signin");
         }
       })
       .catch((err) => {

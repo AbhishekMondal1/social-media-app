@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import { Link, useNavigate, useRouteMatch } from "react-router-dom";
+import { toast } from "react-toastify";
 import { UserContext } from '../../context/UserContext/UserContext'
-import M from "materialize-css";
 import annyang from 'annyang'
 import GoogleBtn from "../GoogleBtn/GoogleBtn";
 
@@ -17,10 +17,7 @@ const Signin = () => {
         email
       )
     ) {
-      M.toast({
-        html: "Invalid Email",
-        classes: "#ff1744 red accent-3",
-      })
+      toast.error("Invalid Email");
       return
     }
     fetch("/signin", {
@@ -37,14 +34,14 @@ const Signin = () => {
       .then((data) => {
         console.log('sign', data)
         if (data.error) {
-          M.toast({ html: data.error, classes: "#ff1744 red accent-3" });
+          toast.error(data.error)
         } else {
           console.log(data.token);
           localStorage.setItem("jwt", data.token);
           localStorage.setItem("user", JSON.stringify(data.user));
           userDispatch({ type: "USER", payload: data.user })
-          M.toast({ html: "signed in success", classes: "#1976d2 blue darken-2" });
-          navigate.push("/");
+          toast.success("Signin Successful")
+          navigate("/");
         }
       })
       .catch((err) => {
