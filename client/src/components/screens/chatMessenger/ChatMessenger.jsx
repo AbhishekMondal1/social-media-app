@@ -1,13 +1,15 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import './chatMessenger.css';
 import Conversation from '../../conversation/Conversation';
 import Message from '../../messages/Message';
 import ChatOnline from '../../chatOnline/ChatOnline';
-import { io } from "socket.io-client";
+import InfiniteScroll from 'react-super-infinite-scroller';
 import { authHeader } from '../../../services/authHeaderConfig';
 import { ChatContext } from '../../../context/ChatContext/ChatContext';
 import { UserContext } from '../../../context/UserContext/UserContext';
+import { SocketContext } from '../../../context/SocketContext/SocketContext';
 
 const ChatMessenger = () => {
   const [conversations, setConversations] = useState([]);
@@ -15,25 +17,32 @@ const ChatMessenger = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [arrivalMessage, setArrivalMessage] = useState(null);
-  const socket = useRef();
+  const { userid } = useParams();
   const scrollRef = useRef();
-  const { userState, userDispatch } = useContext(UserContext);
+  const [page, setPage] = useState(1);
+  const [hasMorePages, setHasMorePages] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [chatUser, setChatUser] = useState(null);
+
+  const { userState } = useContext(UserContext);
   const { chatState, chatDispatch } = useContext(ChatContext);
+  const { socketState } = useContext(SocketContext);
+
   useEffect(() => {
     arrivalMessage &&
       currentChat?.members.includes(arrivalMessage.sender) &&
-      setMessages((prev) => [...prev, arrivalMessage]);
+      setMessages((prev) => [arrivalMessage, ...prev]);
   }, [arrivalMessage, currentChat]);
 
-  // establish Socket connection
   useEffect(() => {
-    const token = localStorage.getItem('jwt');
-    socket.current = io("ws://localhost:9010", {
-       query: { token },
-       autoConnect: false,      
-      });
-      socket.current.connect();
-    socket.current.on("getMessage", (data) => {
+    setMessages([]);
+    setNewMessage("");
+    setPage(1);
+    setArrivalMessage(null);
+  }, [currentChat]);
+
+  useEffect(() => {
+    socketState.chatSocket.on("getMessage", (data) => {
       setArrivalMessage({
         sender: data.senderId,
         text: data.text,
@@ -44,8 +53,8 @@ const ChatMessenger = () => {
 
   // Get Online users userId list
   useEffect(() => {
-    socket.current.emit("addUser", userState?._id);
-    socket.current.on("getUsers", (onlineUsersIds) => {
+    socketState.chatSocket.emit("addUser", userState?._id);
+    socketState.chatSocket.on("getUsers", (onlineUsersIds) => {
       chatDispatch({
         type: "SET_ONLINE_USERS",
         payload: {
@@ -54,7 +63,7 @@ const ChatMessenger = () => {
       });
     });
 
-    socket.current.on("followerConnected", userId => {
+    socketState.chatSocket.on("followerConnected", (userId) => {
       chatDispatch({
         type: "ADD_ONLINE_USER",
         payload: {
@@ -62,8 +71,8 @@ const ChatMessenger = () => {
         }
       });
     })
-    
-    socket.current.on("followerDisconnected", async (userId) => {
+
+    socketState.chatSocket.on("followerDisconnected", async (userId) => {
       chatDispatch({
         type: "REMOVE_ONLINE_USER",
         payload: {
@@ -74,45 +83,74 @@ const ChatMessenger = () => {
   }, [userState]);
 
   useEffect(() => {
-    socket.current?.on("welcome", (message) => {
+    socketState.chatSocket?.on("welcome", (message) => {
       console.log(message);
     });
-  }, [socket]);
+  }, [socketState]);
+
+  // create new conversation
+  useEffect(() => {
+    const createConversation = async () => {
+      try {
+        const res = await axios.post(
+          "/conversation",
+          {
+            senderId: userState._id,
+            receiverId: chatUser,
+          },
+          { headers: authHeader() }
+        );
+        setCurrentChat(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    if (userid) {
+      setChatUser(userid);
+    }
+    if (chatUser) {
+      createConversation();
+    }
+  }, [chatUser]);
 
   // Fetch all previous messages
   useEffect(() => {
     const getConversations = async () => {
       try {
-        const res = await axios.get("/conversation/" + userState._id,
-          { headers: authHeader(), });
+        const res = await axios.get("/conversation/" + userState._id, {
+          headers: authHeader(),
+        });
         setConversations(res.data);
-        console.log(res.data);
       } catch (err) {
         console.log(err);
       }
     };
     getConversations();
-  }, [userState]);
+  }, [userState, chatUser]);
 
-  // get current conversation msg  
+  // get current conversation msg
   useEffect(() => {
+    setLoading(true);
     const getMessages = async () => {
       try {
-        console.log(currentChat);
-        const res = await axios.get("/messages/" + currentChat?._id,
+        const res = await axios.get(
+          `/messages/${currentChat._id}?page=${page}`,
           {
             headers: authHeader(),
-          });
-        console.log(res.data);
-        setMessages(res.data);
+          }
+        );
+        setMessages((prev) => [...prev, ...res.data.messages]);
+        setHasMorePages(res.data.hasMorePages);
+
+        setLoading(false);
       } catch (err) {
         console.log(err);
       }
     };
     getMessages();
-  }, [currentChat]);
+  }, [currentChat, page]);
 
-  // send message 
+  // send message
   const handleSubmit = async (e) => {
     e.preventDefault();
     const message = {
@@ -125,18 +163,16 @@ const ChatMessenger = () => {
       (member) => member !== userState._id
     );
 
-    socket.current.emit("sendMessage", {
+    socketState.chatSocket.emit("sendMessage", {
       senderId: userState._id,
       receiverId,
       text: newMessage,
     });
     try {
-      const res = await axios.post("/messages", message,
-        {
-          headers: authHeader(),
-        }
-      );
-      setMessages([...messages, res.data]);
+      const res = await axios.post("/messages", message, {
+        headers: authHeader(),
+      });
+      setMessages([res.data, ...messages]);
       setNewMessage("");
     } catch (err) {
       console.log(err);
@@ -146,8 +182,8 @@ const ChatMessenger = () => {
   // smooth scroll effect
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-  
+  }, [newMessage, arrivalMessage]);
+
   return (
     <>
       <div className="messenger">
@@ -169,11 +205,23 @@ const ChatMessenger = () => {
             {currentChat ? (
               <>
                 <div className="chat-box-top">
-                  {messages.map((m) => (
-                    <div ref={scrollRef}>
-                      <Message message={m} own={m.sender === userState._id} />
-                    </div>
-                  ))}
+                  <InfiniteScroll
+                    setPage={setPage}
+                    loading={loading}
+                    hasMorePages={hasMorePages}
+                    reverse={true}
+                  >
+                    {messages
+                      .map((m) => (
+                        <div ref={scrollRef}>
+                          <Message
+                            message={m}
+                            own={m.sender[0]?._id == userState._id}
+                          />
+                        </div>
+                      ))
+                      .reverse()}
+                  </InfiniteScroll>
                 </div>
                 <div className="chat-box-bottom">
                   <textarea
