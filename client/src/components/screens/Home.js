@@ -4,6 +4,7 @@ import Post from "../Post/Post";
 import Stories from "./Stories";
 import { authHeader } from '../../services/authHeaderConfig';
 import axios from "axios";
+import InfiniteScroll from "react-super-infinite-scroller";
 import SkeletonPostLoader from "../SkeletonPostLoader/SkeletonPostLoader";
 
 const Home = () => {
@@ -11,8 +12,7 @@ const Home = () => {
   const [page, setPage] = useState(1)
   const [hasMorePages, setHasMorePages] = useState(true)
   const [loading, setLoading] = useState(true)
-  const morepostRef = useRef()
-  const { userState, userDispatch } = useContext(UserContext)
+  const { userState, userDispatch } = useContext(UserContext);
 
   useEffect(() => {
     axios.get("/auth/user", {
@@ -42,43 +42,25 @@ const Home = () => {
     })
       .then(res => res.data)
       .then(({ hasMorePages, allposts }) => {
-        setData([...data, ...allposts])
-        setHasMorePages(hasMorePages)
-        setLoading(false)
-      })
-  }, [page])
-
-  useEffect(() => {
-    if (!morepostRef.current) return;
-    const observer = new IntersectionObserver(
-      (data) => {
-        if (data[0].isIntersecting) {
-          setPage(prevpage => prevpage + 1)
-        }
-      },
-      {
-        root: null,
-        threshold: 0,
-      })
-    observer.observe(morepostRef.current)
-    if (hasMorePages === false) {
-      observer.unobserve(morepostRef.current)
-    }
-    return () => {
-      if (morepostRef.current) {
-        observer.unobserve(morepostRef.current)
-      }
-    }
-  }, [morepostRef.current, hasMorePages])
+        setData([...data, ...allposts]);
+        setHasMorePages(hasMorePages);
+        setLoading(false);
+      });
+  }, [page]);
 
   return (
     <div className="home">
-      <Stories />
+      <InfiniteScroll
+        setPage={setPage}
+        hasMorePages={hasMorePages}
+        loading={loading}
+      >
       {data && data.map((item) => {
         return (
           <Post item={item} setData={setData} data={data} />
         );
       })}
+      </InfiniteScroll>
       {loading && <SkeletonPostLoader />}
       <div className="morepost"
         ref={morepostRef}

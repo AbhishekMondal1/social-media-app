@@ -9,6 +9,9 @@ const getAuthUser = async (req, res) => {
 
 // get user profile
 const getUser = async (req, res) => {
+  if(!mongoose.isValidObjectId(req.params.userid))
+  return res.status(422).json({ error: "Invalid user id" });
+
   const userid = mongoose.Types.ObjectId(req.params.userid);
   try {
     const user = await User.aggregate([

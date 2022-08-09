@@ -1,23 +1,63 @@
 import React, { useContext, useRef, useEffect, useState } from 'react'
-import { Link, useHistory } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify';
 import { UserContext } from '../context/UserContext/UserContext'
 import "./navbar.css";
 import M from 'materialize-css';
 import searchicon from "./icons/search.svg";
 import sendmsgicon from "./icons/sendmsg.svg";
+import notification from "./icons/bell.svg";
 import exploreicon from "./icons/compass.svg";
 import newposticon from "./icons/plussquare.svg";
 import logouticon from "./icons/logout.svg";
+import { SocketContext } from '../context/SocketContext/SocketContext';
+import { NotificationContext } from '../context/NotificationContext/NotificationContext';
+import Notifications from './Notifications/Notifications';
 
 const NavBar = () => {
   const searchModal = useRef(null)
   const [search, setSearch] = useState('')
   const [userDetails, setUserDetails] = useState([])
+  const navigate = useNavigate()
   const { userState, userDispatch } = useContext(UserContext)
-  const history = useHistory()
+  const { socketState } = useContext(SocketContext)
+  const { notificationState, notificationDispatch } = useContext(NotificationContext)
+
+  useEffect(() => {
+    if (userState?._id)
+      socketState.notificationSocket?.emit("joinNotification", userState._id)
+  }, [userState?._id])
+
   useEffect(() => {
     M.Modal.init(searchModal.current)
   }, [])
+
+  useEffect(() => {
+    if(notificationState.newNotification){
+      toast(
+        <Notifications notification={notificationState.newNotification[0]} />
+      ,
+      {
+        position: "top-left",
+        autoClose: 50000,
+        hideProgressBar: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        newestOnTop: true,
+        draggablePercent: 60
+      }        
+      )
+    }
+  }, [notificationState.newNotification])
+
+  useEffect(() => {
+    socketState.notificationSocket?.on("getNotification", ({ notificationSend }) => {
+      notificationDispatch({ type: "ADD_NOTIFICATION", payload: { notificationSend } })
+      notificationDispatch({ type: "ADD_NEW_NOTIFICATION", payload: { notificationSend } })
+    })
+  }, [socketState])
+
   const renderList = () => {
     if (userState) {
       return (
@@ -74,8 +114,8 @@ const NavBar = () => {
             className="material-icons"
             style={{ color: "black", marginTop: "21px" }}
           >
-            <Link to="/messages">
-            <img src={sendmsgicon} />
+            <Link to="/notifications">
+          <img src={notification} />
             </Link>
           </li>
           <li
@@ -94,7 +134,7 @@ const NavBar = () => {
               onClick={() => {
                 localStorage.clear();
                 userDispatch({ type: "CLEAR" });
-                history.push("/signin");
+                navigate("/signin");
               }}
             >
               <img src={logouticon} />
@@ -130,6 +170,7 @@ const NavBar = () => {
         setUserDetails(results.user)
       })
   }
+
   return (
     <nav>
       <div className="nav-wrapper white">

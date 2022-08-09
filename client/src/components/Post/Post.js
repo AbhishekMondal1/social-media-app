@@ -6,11 +6,14 @@ import { authHeader } from "../../services/authHeaderConfig";
 import "./post.css";
 import send from "../icons/plane.svg";
 import axios from "axios";
+import { SocketContext } from "../../context/SocketContext/SocketContext";
 
 const Post = ({ item, individualpost, data, setData, singlePostData, setSinglePostData }) => {
     const [loading, setLoading] = useState(true)
     const [comment, setComment] = useState("")
     const { userState, userDispatch } = useContext(UserContext)
+    const { socketState } = useContext(SocketContext)
+
     const likeBtn = useRef(null)
 
     const likeClick = (id) => {
@@ -23,9 +26,16 @@ const Post = ({ item, individualpost, data, setData, singlePostData, setSinglePo
         }, 1000)
     }
 
-    const likepost = (id) => {
+    const likepost = (postId, receiverId) => {
+        socketState.notificationSocket?.emit("sendNotification", {
+            senderId: userState._id,
+            receiverId: receiverId,
+            postId: postId,
+            notificationType: "like",
+        })
+
         axios.put('/like', {
-            postId: id
+            postId: postId
         }, {
             headers: authHeader(),
         })
@@ -91,7 +101,13 @@ const Post = ({ item, individualpost, data, setData, singlePostData, setSinglePo
             });
     }
 
-    const makeComment = (text, postId) => {
+    const makeComment = (text, postId, receiverId) => {
+        socketState.notificationSocket?.emit("sendNotification", {
+            senderId: userState._id,
+            receiverId: receiverId,
+            postId: postId,
+            notificationType: "comment",
+        })
         axios.put('/comment', {
             text,
             postId
@@ -173,7 +189,7 @@ const Post = ({ item, individualpost, data, setData, singlePostData, setSinglePo
                 key={item._id}
                 onClick={() => {
                     likeClick(item._id);
-                    !item.viewerliked && likepost(item._id)
+                    !item.viewerliked && likepost(item._id, item.postedBy[0]._id)
                 }}
                 ref={likeBtn}
             >
@@ -190,7 +206,7 @@ const Post = ({ item, individualpost, data, setData, singlePostData, setSinglePo
                 ) : (
                     <i
                         className="material-icons"
-                        onClick={() => likepost(item._id)}
+                        onClick={() => likepost(item._id, item.postedBy[0]._id)}
                     >
                         favorite_border
                     </i>
@@ -229,7 +245,7 @@ const Post = ({ item, individualpost, data, setData, singlePostData, setSinglePo
                     <form
                         onSubmit={(e) => {
                             e.preventDefault();
-                            makeComment(comment, item._id);
+                            makeComment(comment, item._id, item.postedBy[0]._id);
                             setComment("")
                         }}
                         className="commentfooter"
@@ -237,7 +253,7 @@ const Post = ({ item, individualpost, data, setData, singlePostData, setSinglePo
                         <input type="text" placeholder="add a comment" onChange={(e) => { setComment(e.target.value) }} value={comment} />
                         <button type="submit" onClick={(e) => {
                             e.preventDefault();
-                            makeComment(comment, item._id);
+                            makeComment(comment, item._id, item.postedBy[0]._id);
                             setComment("")
                         }}>
                             <img src={send} style={{ width: "25px" }} />
