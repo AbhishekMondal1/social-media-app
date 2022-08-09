@@ -31,7 +31,19 @@ const ChatOnline = ({ onlineUsers, currentId, setCurrentChat, newMessage }) => {
         `conversation/find/${currentId}/${user._id}`,
         { headers: authHeader(), }
       );
-      setCurrentChat(res.data);
+      if(res.data == null){
+        const res = await axios.post(
+          `conversation/`, {
+            senderId: currentId,
+            receiverId: user._id
+          },
+          {headers: authHeader(),}
+        )
+        setCurrentChat(res.data);
+      }
+      else{
+        setCurrentChat(res.data);
+      }
     } catch (err) {
       console.log(err);
     }

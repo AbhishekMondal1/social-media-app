@@ -5,7 +5,7 @@ import { authHeader } from "../../services/authHeaderConfig";
 import SkeletonPostGridLoader from "../SkeletonPostGridLoader/SkeletonPostGridLoader";
 import axios from "axios";
 
-const Profile = () => {
+const UserProfile = () => {
   const [userProfile, setUserProfile] = useState([])
   const { userState, userDispatch } = useContext(UserContext);
   const { userid } = useParams()
@@ -180,9 +180,11 @@ const Profile = () => {
                 </button>
               )}
               {
+                <Link to={`/chatmessages/${userProfile._id}`}>
                 <button className="btn waves-effect waves-light #64b516 green darken-2">
                   Message
                 </button>
+                </Link>
               }
             </div>
           </div>
@@ -216,4 +218,4 @@ const Profile = () => {
   );
 }
 
-export default Profile;
+export default UserProfile;

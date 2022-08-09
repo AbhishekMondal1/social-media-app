@@ -45,6 +45,7 @@ app.use(passport.session());
 
 const conversationRoute = require('./routes/conversations')
 const messageRoute = require('./routes/messages')
+const notificationRoute = require('./routes/notification')
 require('./models/user')
 const User = require('./models/user')
 require('./models/post')
@@ -57,6 +58,7 @@ app.use("/conversation", conversationRoute)
 app.use("/messages", messageRoute)
 const adminRouter = require('./admin/admin.router')
 app.use('/admin', adminRouter)
+app.use('/notifications', notificationRoute);
 // app.use(require('./routes/adminroutes'))
 require('./middleware/passport_setup')
 

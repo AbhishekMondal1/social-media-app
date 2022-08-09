@@ -2,6 +2,7 @@
     display:flex;
     background-color: #fff;
     height: calc(100vh - 64px);
+    width: 100%;
 }
 
 .conversation-menu{
