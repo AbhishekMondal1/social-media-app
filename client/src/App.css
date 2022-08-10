@@ -268,3 +268,10 @@ button.linksettings {
 .linksettings img{
     width: 25px;
 }
+
+.notifications-container{
+    max-width: 500px;
+    margin: 0 auto;
+    border-left: 1px solid #2b2c44;
+    border-right: 1px solid #2b2c44;
+}

@@ -226,6 +226,154 @@ io.on("connection", (socket) => {
 }
 );
 
+const Notification = require('./models/notification')
+const Post = require('./models/post')
+
+// NOTIFICATION SOCKET
+const io2 = require("socket.io")(9011, {
+  cors: {
+    origin: "https://localhost:3005",
+  },
+});
+
+
+let globalOnlineUsers = [];
+
+// add user to globalOnlineUsers list
+const addGlobalUser = (userId, socketId) => {
+  !globalOnlineUsers.some((user) => user.userId === userId) &&
+    globalOnlineUsers.push({ userId, socketId });
+  console.log(globalOnlineUsers);
+};
+
+// remove user from globalOnlineUsers list
+const removeGlobalUser = (socketId) => {
+  globalOnlineUsers = globalOnlineUsers.filter((user) => user.socketId !== socketId);
+  console.log(globalOnlineUsers);
+};
+
+// get userid of notification receiver
+const getGlobalUser = (userId) => {
+  return globalOnlineUsers.find((user) => user.userId === userId);
+};
+
+const getGlobalUserSocket = async (userId) => {
+  return await onlineUsers.find((user) => user.userId == userId);
+};
+
+
+io2.on("connection", (socket) => {
+  jwt.verify(socket.handshake.query.token, JWT_SECRET, (err, decoded) => {
+    if (err) {
+      console.log("err", err);
+    } else {
+      console.log("notification socket connected", socket.id, "online users", globalOnlineUsers);
+      socket.on("joinNotification", async (userId) => {
+        console.log("notification JOIN", userId, socket.id);
+        if(userId != null){
+          addGlobalUser(userId, socket.id);
+        }   
+      })
+      socket.on("sendNotification", async ({senderId, receiverId, postId, notificationType}) => {
+        const user = await getGlobalUser(receiverId);
+        console.log("send noti", senderId, receiverId, postId, notificationType)
+        console.log("user",globalOnlineUsers, user)
+
+
+        // insert into notification
+        const senderUser = await User.findById(senderId)
+        let notificationText = ""
+        if(notificationType === "like"){
+          notificationText = `${senderUser.username} liked your post.`
+        }
+        if(notificationType === "comment"){
+          notificationText = `${senderUser.username} commented on your post.`
+        }
+        if(notificationType === "follow"){
+          notificationText = `${senderUser.username} started following you.`
+        }
+        const notification = new Notification({
+          senderId,
+          receiverId,
+          notificationType,
+          notificationText,
+          link: mongoose.Types.ObjectId(postId),
+        })
+        await notification.save()
+        console.log("notification", notification)
+
+        const notificationSend = await Notification.aggregate([
+          {
+            $match: {
+              '_id': notification._id,
+            }
+          }, {
+            $lookup: {
+              from: 'users', 
+              localField: 'senderId', 
+              foreignField: '_id', 
+              as: 'sender'
+            }
+          }, {
+            $lookup: {
+              from: 'posts', 
+              localField: 'link', 
+              foreignField: '_id', 
+              as: 'post'
+            }
+          }, {
+            $unwind: {
+              path: '$sender',
+              preserveNullAndEmptyArrays: false
+            }
+          }, {
+            $set: {
+              'following': {
+                $cond: {
+                  if: {
+                    $eq: ['$notificationType', 'follow']
+                  }, 
+                  then: {
+                    $in: ["$receiverId", "$sender.followers"]
+                   },
+                  else: '$$REMOVE'
+                }
+              }
+            }
+          }, {
+            $project: {
+              _id: 1,
+              'sender._id': 1,
+              'sender.username': 1, 
+              'sender.pic': 1, 
+              notificationType: 1, 
+              notificationText: 1,
+              'post._id': 1,
+              'post.photo': 1, 
+              following: 1,
+              read: 1,
+              link: 1,
+              createdAt: 1
+            }
+          }
+        ])
+
+        console.log("noti send",notificationSend)
+        io2.to(user?.socketId).emit("getNotification", { 
+          notificationSend,
+          
+        });
+      })
+      socket.on("disconnect", () => {
+        console.log("notification socket disconnected", socket.id);
+      console.log("online users", globalOnlineUsers);
+
+        removeGlobalUser(socket.id);
+      }
+      )
+    }
+  })
+})
 
 run()
 

@@ -62,13 +62,6 @@ const Home = () => {
       })}
       </InfiniteScroll>
       {loading && <SkeletonPostLoader />}
-      <div className="morepost"
-        ref={morepostRef}
-        style={{
-          width: "10px", height: "50px",
-          display: `${loading ? "none" : "block"}`
-        }}>
-      </div>
     </div>
   );
 }
