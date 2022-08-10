@@ -1,14 +1,19 @@
-import React from 'react'
-import "./tooltip.css"
+import React from "react";
+import propTypes from "prop-types";
+import "./tooltip.css";
 
 const Tooltip = (props) => {
   return (
-    <div class="con-tooltip down">
-      <div class="tooltip">
+    <div className="con-tooltip down">
+      <div className="tooltip">
         <p>{props.title}</p>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Tooltip
+Tooltip.propTypes = {
+  title: propTypes.string.isRequired,
+};
+
+export default Tooltip;

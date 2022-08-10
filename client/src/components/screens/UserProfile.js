@@ -1,128 +1,140 @@
 import React, { useEffect, useState, useContext, useRef } from "react";
 import { UserContext } from "../../context/UserContext/UserContext";
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link } from "react-router-dom";
 import { authHeader } from "../../services/authHeaderConfig";
 import SkeletonPostGridLoader from "../SkeletonPostGridLoader/SkeletonPostGridLoader";
 import axios from "axios";
 
 const UserProfile = () => {
-  const [userProfile, setUserProfile] = useState([])
+  const [userProfile, setUserProfile] = useState([]);
   const { userState, userDispatch } = useContext(UserContext);
-  const { userid } = useParams()
-  const [showFollow, setShowFollow] = useState()
+  const { userid } = useParams();
+  const [showFollow, setShowFollow] = useState();
 
-  const [postdata, setPostData] = useState([])
-  const [page, setPage] = useState(1)
-  const [hasMorePages, setHasMorePages] = useState(true)
-  const [loading, setLoading] = useState(true)
-  const [totalNumberOfPosts, setTOtalNumberOfPosts] = useState(0)
-  const morepostRef = useRef()
+  const [postdata, setPostData] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMorePages, setHasMorePages] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [totalNumberOfPosts, setTOtalNumberOfPosts] = useState(0);
+  const morepostRef = useRef();
 
   useEffect(() => {
-    axios.get(`/user/${userid}`, {
-      withCredentials: true,
-      headers: authHeader(),
-    })
-      .then((res) => res.data)
-      .then(result => {
-        setUserProfile(result.user[0])
-        setShowFollow(!result.user[0].follows)
+    axios
+      .get(`/user/${userid}`, {
+        withCredentials: true,
+        headers: authHeader(),
       })
+      .then((res) => res.data)
+      .then((result) => {
+        setUserProfile(result.user[0]);
+        setShowFollow(!result.user[0].follows);
+      });
   }, []);
 
   useEffect(() => {
-    setLoading(true)
-    axios.get(`/userspostlist/${userid}?page=${page}`, {
-      withCredentials: 'true',
-      headers: authHeader(),
-    })
-      .then(res => res.data)
-      .then(({ hasMorePages, postlists, totalNumberOfPosts }) => {
-        setPostData([...postdata, ...postlists])
-        setHasMorePages(hasMorePages)
-        setTOtalNumberOfPosts(totalNumberOfPosts)
-        setLoading(false)
+    setLoading(true);
+    axios
+      .get(`/userspostlist/${userid}?page=${page}`, {
+        withCredentials: "true",
+        headers: authHeader(),
       })
-  }, [page])
+      .then((res) => res.data)
+      .then(({ hasMorePages, postlists, totalNumberOfPosts }) => {
+        setPostData([...postdata, ...postlists]);
+        setHasMorePages(hasMorePages);
+        setTOtalNumberOfPosts(totalNumberOfPosts);
+        setLoading(false);
+      });
+  }, [page]);
 
   useEffect(() => {
     if (!morepostRef.current) return;
     const observer = new IntersectionObserver(
       (data) => {
         if (data[0].isIntersecting) {
-          setPage(prevpage => prevpage + 1)
+          setPage((prevpage) => prevpage + 1);
         }
       },
       {
         root: null,
         threshold: 0,
-      })
-    observer.observe(morepostRef.current)
+      },
+    );
+    observer.observe(morepostRef.current);
     if (hasMorePages === false) {
-      observer.unobserve(morepostRef.current)
+      observer.unobserve(morepostRef.current);
     }
     return () => {
       if (morepostRef.current) {
-        observer.unobserve(morepostRef.current)
+        observer.unobserve(morepostRef.current);
       }
-    }
-  }, [morepostRef.current, hasMorePages])
+    };
+  }, [morepostRef.current, hasMorePages]);
 
   const followUser = () => {
-    axios.put("/follow", {
-      followId: userid
-    }, {
-      headers: authHeader(),
-    })
-      .then((res) => res.data)
-      .then((data) => {   
-        setShowFollow(false)
-        setShowFollow(!data.follows)
-        setUserProfile(prev => ({
-          ...prev,
-          totalFollowers: prev.totalFollowers + 1,
-        }))
-        userDispatch({
-          type: "UPDATE_FOLLOWING",
-          payload: { totalFollowing: userState.totalFollowing + 1 }
-        });
-        const localStorageUser = JSON.parse(localStorage.getItem("user"))
-        localStorageUser.totalFollowing = localStorageUser.totalFollowing + 1
-        localStorage.setItem("user", JSON.stringify(localStorageUser))        
-      })      
-      .catch((err) => {
-        console.log(err);
-      });
-    }
-
-  const unfollowUser = () => {
-    axios.put("/unfollow", {
-      unfollowId: userid,
-    }, {
-      headers: authHeader(),
-    })
+    axios
+      .put(
+        "/follow",
+        {
+          followId: userid,
+        },
+        {
+          headers: authHeader(),
+        },
+      )
       .then((res) => res.data)
       .then((data) => {
-
-        setShowFollow(!data.follows)
-        setUserProfile(prev => ({
+        setShowFollow(false);
+        setShowFollow(!data.follows);
+        setUserProfile((prev) => ({
           ...prev,
-          totalFollowers: prev.totalFollowers - 1,
-        }))
+          totalFollowers: prev.totalFollowers + 1,
+        }));
         userDispatch({
           type: "UPDATE_FOLLOWING",
-          payload: { totalFollowing: userState.totalFollowing - 1 }
+          payload: { totalFollowing: userState.totalFollowing + 1 },
         });
-        const localStorageUser = JSON.parse(localStorage.getItem("user"))
-        localStorageUser.totalFollowing = localStorageUser.totalFollowing - 1
-        localStorage.setItem("user", JSON.stringify(localStorageUser))
+        const localStorageUser = JSON.parse(localStorage.getItem("user"));
+        localStorageUser.totalFollowing = localStorageUser.totalFollowing + 1;
+        localStorage.setItem("user", JSON.stringify(localStorageUser));
       })
       .catch((err) => {
         console.log(err);
       });
-    };
-    return (
-      <>
+  };
+
+  const unfollowUser = () => {
+    axios
+      .put(
+        "/unfollow",
+        {
+          unfollowId: userid,
+        },
+        {
+          headers: authHeader(),
+        },
+      )
+      .then((res) => res.data)
+      .then((data) => {
+        setShowFollow(!data.follows);
+        setUserProfile((prev) => ({
+          ...prev,
+          totalFollowers: prev.totalFollowers - 1,
+        }));
+        userDispatch({
+          type: "UPDATE_FOLLOWING",
+          payload: { totalFollowing: userState.totalFollowing - 1 },
+        });
+        const localStorageUser = JSON.parse(localStorage.getItem("user"));
+        localStorageUser.totalFollowing = localStorageUser.totalFollowing - 1;
+        localStorage.setItem("user", JSON.stringify(localStorageUser));
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+  return (
+    <>
       {userProfile && (
         <div style={{ maxWidth: "550px", margin: "0px auto" }}>
           <div
@@ -133,7 +145,7 @@ const UserProfile = () => {
               borderBottom: "1px solid grey",
             }}
           >
-            <div style={{height: "180px"}}>
+            <div style={{ height: "180px" }}>
               <img
                 style={{
                   width: "160px",
@@ -181,9 +193,9 @@ const UserProfile = () => {
               )}
               {
                 <Link to={`/chatmessages/${userProfile._id}`}>
-                <button className="btn waves-effect waves-light #64b516 green darken-2">
-                  Message
-                </button>
+                  <button className="btn waves-effect waves-light #64b516 green darken-2">
+                    Message
+                  </button>
                 </Link>
               }
             </div>
@@ -207,15 +219,17 @@ const UserProfile = () => {
         </div>
       )}
       {loading && <SkeletonPostGridLoader />}
-      <div className="morepost"
+      <div
+        className="morepost"
         ref={morepostRef}
         style={{
-          width: "10px", height: "50px",
-          display: `${loading ? "none" : "block"}`
-        }}>
-      </div>
+          width: "10px",
+          height: "50px",
+          display: `${loading ? "none" : "block"}`,
+        }}
+      ></div>
     </>
   );
-}
+};
 
 export default UserProfile;

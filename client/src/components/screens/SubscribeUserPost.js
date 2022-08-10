@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { UserContext } from "../../App";
 import { authHeader } from "../../services/authHeaderConfig";
 import axios from "axios";
 import Post from "../Post/Post";
@@ -8,19 +7,20 @@ import SkeletonPostLoader from "../SkeletonPostLoader/SkeletonPostLoader";
 const SubscribeUserPost = () => {
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
-  const [hasMorePages, setHasMorePages] = useState(true)
+  const [hasMorePages, setHasMorePages] = useState(true);
   const [loading, setLoading] = useState(true);
-  const morepostRef = useRef()
+  const morepostRef = useRef();
   useEffect(() => {
-    setLoading(true)
-    axios.get(`/getsubpost?page=${page}`, {
-      headers: authHeader(),
-    })
+    setLoading(true);
+    axios
+      .get(`/getsubpost?page=${page}`, {
+        headers: authHeader(),
+      })
       .then((res) => res.data)
-      .then(({allFollowingPosts, hasMorePages}) => {
+      .then(({ allFollowingPosts, hasMorePages }) => {
         setData([...data, ...allFollowingPosts]);
-        setHasMorePages(hasMorePages)
-        setLoading(false)
+        setHasMorePages(hasMorePages);
+        setLoading(false);
       });
   }, [page]);
 
@@ -29,39 +29,40 @@ const SubscribeUserPost = () => {
     const observer = new IntersectionObserver(
       (data) => {
         if (data[0].isIntersecting) {
-          setPage(prevpage => prevpage + 1)
+          setPage((prevpage) => prevpage + 1);
         }
       },
       {
         root: null,
         threshold: 0,
-      })
-    observer.observe(morepostRef.current)
+      },
+    );
+    observer.observe(morepostRef.current);
     if (hasMorePages === false) {
-      observer.unobserve(morepostRef.current)
+      observer.unobserve(morepostRef.current);
     }
     return () => {
       if (morepostRef.current) {
-        observer.unobserve(morepostRef.current)
+        observer.unobserve(morepostRef.current);
       }
-    }
-  }, [morepostRef.current, hasMorePages])
+    };
+  }, [morepostRef.current, hasMorePages]);
 
   return (
     <div className="home">
-      {data.map((item) => {
-        return (
-          <Post item={item} setData={setData} data={data} />
-        );
+      {data.map((item, i) => {
+        return <Post item={item} setData={setData} data={data} key={i} />;
       })}
-       {loading && <SkeletonPostLoader />}
-       <div className="morepost"
+      {loading && <SkeletonPostLoader />}
+      <div
+        className="morepost"
         ref={morepostRef}
         style={{
-          width: "10px", height: "50px",
-          display: `${loading ? "none" : "block"}`
-        }}>
-      </div>
+          width: "10px",
+          height: "50px",
+          display: `${loading ? "none" : "block"}`,
+        }}
+      ></div>
     </div>
   );
 };

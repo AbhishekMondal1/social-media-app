@@ -1,62 +1,71 @@
-import React, { useContext, useRef, useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { toast } from 'react-toastify';
-import { UserContext } from '../context/UserContext/UserContext'
+import React, { useContext, useRef, useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { UserContext } from "../context/UserContext/UserContext";
 import "./navbar.css";
-import M from 'materialize-css';
+import M from "materialize-css";
 import searchicon from "./icons/search.svg";
 import sendmsgicon from "./icons/sendmsg.svg";
 import notification from "./icons/bell.svg";
 import exploreicon from "./icons/compass.svg";
 import newposticon from "./icons/plussquare.svg";
 import logouticon from "./icons/logout.svg";
-import { SocketContext } from '../context/SocketContext/SocketContext';
-import { NotificationContext } from '../context/NotificationContext/NotificationContext';
-import Notifications from './Notifications/Notifications';
+import { SocketContext } from "../context/SocketContext/SocketContext";
+import { NotificationContext } from "../context/NotificationContext/NotificationContext";
+import Notifications from "./Notifications/Notifications";
 
 const NavBar = () => {
-  const searchModal = useRef(null)
-  const [search, setSearch] = useState('')
-  const [userDetails, setUserDetails] = useState([])
-  const navigate = useNavigate()
-  const { userState, userDispatch } = useContext(UserContext)
-  const { socketState } = useContext(SocketContext)
-  const { notificationState, notificationDispatch } = useContext(NotificationContext)
+  const searchModal = useRef(null);
+  const [search, setSearch] = useState("");
+  const [userDetails, setUserDetails] = useState([]);
+  const navigate = useNavigate();
+  const { userState, userDispatch } = useContext(UserContext);
+  const { socketState } = useContext(SocketContext);
+  const { notificationState, notificationDispatch } =
+    useContext(NotificationContext);
 
   useEffect(() => {
     if (userState?._id)
-      socketState.notificationSocket?.emit("joinNotification", userState._id)
-  }, [userState?._id])
+      socketState.notificationSocket?.emit("joinNotification", userState._id);
+  }, [userState?._id]);
 
   useEffect(() => {
-    M.Modal.init(searchModal.current)
-  }, [])
+    M.Modal.init(searchModal.current);
+  }, []);
 
   useEffect(() => {
-    if(notificationState.newNotification){
+    if (notificationState.newNotification) {
       toast(
-        <Notifications notification={notificationState.newNotification[0]} />
-      ,
-      {
-        position: "top-left",
-        autoClose: 50000,
-        hideProgressBar: false,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        newestOnTop: true,
-        draggablePercent: 60
-      }        
-      )
+        <Notifications notification={notificationState.newNotification[0]} />,
+        {
+          position: "top-left",
+          autoClose: 50000,
+          hideProgressBar: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          newestOnTop: true,
+          draggablePercent: 60,
+        },
+      );
     }
-  }, [notificationState.newNotification])
+  }, [notificationState.newNotification]);
 
   useEffect(() => {
-    socketState.notificationSocket?.on("getNotification", ({ notificationSend }) => {
-      notificationDispatch({ type: "ADD_NOTIFICATION", payload: { notificationSend } })
-      notificationDispatch({ type: "ADD_NEW_NOTIFICATION", payload: { notificationSend } })
-    })
-  }, [socketState])
+    socketState.notificationSocket?.on(
+      "getNotification",
+      ({ notificationSend }) => {
+        notificationDispatch({
+          type: "ADD_NOTIFICATION",
+          payload: { notificationSend },
+        });
+        notificationDispatch({
+          type: "ADD_NEW_NOTIFICATION",
+          payload: { notificationSend },
+        });
+      },
+    );
+  }, [socketState]);
 
   const renderList = () => {
     if (userState) {
@@ -69,7 +78,7 @@ const NavBar = () => {
             className="large material-icons modal-trigger"
             style={{ color: "black", marginTop: "21px" }}
           >
-          <img src={searchicon} />            
+            <img src={searchicon} />
           </li>
           <li
             key="2"
@@ -97,7 +106,7 @@ const NavBar = () => {
             style={{ color: "black", marginTop: "21px" }}
           >
             <Link to="/create">
-          <img src={newposticon} />
+              <img src={newposticon} />
             </Link>
           </li>
           <li
@@ -106,7 +115,7 @@ const NavBar = () => {
             style={{ color: "black", marginTop: "21px" }}
           >
             <Link to="/myfollowingpost">
-          <img src={exploreicon} />
+              <img src={exploreicon} />
             </Link>
           </li>
           <li
@@ -115,7 +124,7 @@ const NavBar = () => {
             style={{ color: "black", marginTop: "21px" }}
           >
             <Link to="/notifications">
-          <img src={notification} />
+              <img src={notification} />
             </Link>
           </li>
           <li
@@ -124,11 +133,10 @@ const NavBar = () => {
             style={{ color: "black", marginTop: "21px" }}
           >
             <Link to="/chatmessages">
-          <img src={sendmsgicon} />
+              <img src={sendmsgicon} />
             </Link>
           </li>
-          <li key="7"
-          style={{ color: "black",  marginTop: "10px" }}>
+          <li key="7" style={{ color: "black", marginTop: "10px" }}>
             <button
               className="btnexit"
               onClick={() => {
@@ -138,9 +146,10 @@ const NavBar = () => {
               }}
             >
               <img src={logouticon} />
-             </button>
+            </button>
           </li>
-        </>)
+        </>
+      );
       // ];
     } else {
       return [
@@ -152,24 +161,22 @@ const NavBar = () => {
         </li>,
       ];
     }
-  }
+  };
 
   const fetchUsers = (query) => {
-    setSearch(query)
-    fetch('/search-users',
-      {
-        method: "post",
-        headers: {
-          "Content-Type": "Application/json"
-        },
-        body: JSON.stringify({ query }
-        )
-      })
-      .then(res => res.json())
-      .then(results => {
-        setUserDetails(results.user)
-      })
-  }
+    setSearch(query);
+    fetch("/search-users", {
+      method: "post",
+      headers: {
+        "Content-Type": "Application/json",
+      },
+      body: JSON.stringify({ query }),
+    })
+      .then((res) => res.json())
+      .then((results) => {
+        setUserDetails(results.user);
+      });
+  };
 
   return (
     <nav>
@@ -195,12 +202,20 @@ const NavBar = () => {
             onChange={(e) => fetchUsers(e.target.value)}
           />
           <ul className="collection">
-            {userDetails.map(item => {
+            {userDetails.map((item, i) => {
               return (
-                <Link to={item._id !== userState._id ? "/profile/" + item._id : "/profile"} onClick={() => {
-                  M.Modal.getInstance(searchModal.current).close()
-                  setSearch("")
-                }}>
+                <Link
+                  to={
+                    item._id !== userState._id
+                      ? "/profile/" + item._id
+                      : "/profile"
+                  }
+                  onClick={() => {
+                    M.Modal.getInstance(searchModal.current).close();
+                    setSearch("");
+                  }}
+                  key={i}
+                >
                   <li className="collection-item">{item.username}</li>
                 </Link>
               );
@@ -208,12 +223,15 @@ const NavBar = () => {
           </ul>
         </div>
         <div className="modal-footer">
-          <button className="modal-close waves-effect waves-green btn-flat" onClick={() => setSearch("")}>
+          <button
+            className="modal-close waves-effect waves-green btn-flat"
+            onClick={() => setSearch("")}
+          >
             Close
           </button>
         </div>
       </div>
     </nav>
   );
-}
-export default NavBar
+};
+export default NavBar;

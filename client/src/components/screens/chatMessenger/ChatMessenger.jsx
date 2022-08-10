@@ -1,15 +1,15 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
-import axios from 'axios';
-import './chatMessenger.css';
-import Conversation from '../../conversation/Conversation';
-import Message from '../../messages/Message';
-import ChatOnline from '../../chatOnline/ChatOnline';
-import InfiniteScroll from 'react-super-infinite-scroller';
-import { authHeader } from '../../../services/authHeaderConfig';
-import { ChatContext } from '../../../context/ChatContext/ChatContext';
-import { UserContext } from '../../../context/UserContext/UserContext';
-import { SocketContext } from '../../../context/SocketContext/SocketContext';
+import React, { useState, useContext, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import "./chatMessenger.css";
+import Conversation from "../../conversation/Conversation";
+import Message from "../../messages/Message";
+import ChatOnline from "../../chatOnline/ChatOnline";
+import InfiniteScroll from "react-super-infinite-scroller";
+import { authHeader } from "../../../services/authHeaderConfig";
+import { ChatContext } from "../../../context/ChatContext/ChatContext";
+import { UserContext } from "../../../context/UserContext/UserContext";
+import { SocketContext } from "../../../context/SocketContext/SocketContext";
 
 const ChatMessenger = () => {
   const [conversations, setConversations] = useState([]);
@@ -59,7 +59,7 @@ const ChatMessenger = () => {
         type: "SET_ONLINE_USERS",
         payload: {
           onlineUsersIds: onlineUsersIds,
-        }
+        },
       });
     });
 
@@ -68,18 +68,18 @@ const ChatMessenger = () => {
         type: "ADD_ONLINE_USER",
         payload: {
           userId: userId,
-        }
+        },
       });
-    })
+    });
 
     socketState.chatSocket.on("followerDisconnected", async (userId) => {
       chatDispatch({
         type: "REMOVE_ONLINE_USER",
         payload: {
           userId: userId[0],
-        }
+        },
       });
-    })
+    });
   }, [userState]);
 
   useEffect(() => {
@@ -98,7 +98,7 @@ const ChatMessenger = () => {
             senderId: userState._id,
             receiverId: chatUser,
           },
-          { headers: authHeader() }
+          { headers: authHeader() },
         );
         setCurrentChat(res.data);
       } catch (err) {
@@ -137,7 +137,7 @@ const ChatMessenger = () => {
           `/messages/${currentChat._id}?page=${page}`,
           {
             headers: authHeader(),
-          }
+          },
         );
         setMessages((prev) => [...prev, ...res.data.messages]);
         setHasMorePages(res.data.hasMorePages);
@@ -160,7 +160,7 @@ const ChatMessenger = () => {
     };
 
     const receiverId = currentChat.members.find(
-      (member) => member !== userState._id
+      (member) => member !== userState._id,
     );
 
     socketState.chatSocket.emit("sendMessage", {
@@ -193,8 +193,8 @@ const ChatMessenger = () => {
               placeholder="Search for friends"
               className="chat-menu-input"
             />
-            {conversations.map((c) => (
-              <div onClick={() => setCurrentChat(c)}>
+            {conversations.map((c, i) => (
+              <div onClick={() => setCurrentChat(c)} key={i}>
                 <Conversation conversation={c} currentUser={userState} />
               </div>
             ))}
@@ -212,8 +212,8 @@ const ChatMessenger = () => {
                     reverse={true}
                   >
                     {messages
-                      .map((m) => (
-                        <div ref={scrollRef}>
+                      .map((m, i) => (
+                        <div ref={scrollRef} key={i}>
                           <Message
                             message={m}
                             own={m.sender[0]?._id == userState._id}
@@ -248,13 +248,13 @@ const ChatMessenger = () => {
               onlineUsers={chatState.usersOnline}
               currentId={userState?._id}
               setCurrentChat={setCurrentChat}
-              newMessage={newMessage}
+              // newMessage={newMessage}
             />
           </div>
         </div>
       </div>
     </>
   );
-}
+};
 
 export default ChatMessenger;

@@ -6,20 +6,25 @@ import axios from "axios";
 
 const CreatePost = () => {
   const navigate = useNavigate();
-  const [title, setTitle] = useState("")
-  const [body, setBody] = useState("")
-  const [image, setImage] = useState("")
-  const [url, setUrl] = useState("")
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [image, setImage] = useState("");
+  const [url, setUrl] = useState("");
 
   const uploadPost = () => {
     if (url) {
-      axios.post("/createpost", {
-        title,
-        body,
-        pic: url,
-      }, {
-        headers: authHeader(),
-      })
+      axios
+        .post(
+          "/createpost",
+          {
+            title,
+            body,
+            pic: url,
+          },
+          {
+            headers: authHeader(),
+          },
+        )
         .then((res) => res.data)
         .then((data) => {
           if (data.error) {
@@ -33,28 +38,26 @@ const CreatePost = () => {
           console.log(err);
         });
     }
-  }
+  };
 
   useEffect(() => {
     const postImage = () => {
       const formData = new FormData();
-      formData.append("file", image)
-      formData.append("upload_preset", "social_network")
-      formData.append("cloud_name", "digimode")
-      axios.post(
-        "https://api.cloudinary.com/v1_1/digimode/image/upload", formData)
-        .then(res => res.data)
-        .then(data => {
-          setUrl(data.url)
+      formData.append("file", image);
+      formData.append("upload_preset", "social_network");
+      formData.append("cloud_name", "digimode");
+      axios
+        .post("https://api.cloudinary.com/v1_1/digimode/image/upload", formData)
+        .then((res) => res.data)
+        .then((data) => {
+          setUrl(data.url);
         })
-        .catch(err => {
-          console.log(err)
-        })
-    }
+        .catch((err) => {
+          console.log(err);
+        });
+    };
     postImage();
-  }, [image])
-
-
+  }, [image]);
 
   return (
     <div

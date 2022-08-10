@@ -4,55 +4,60 @@ import { toast } from "react-toastify";
 import GoogleBtn from "../GoogleBtn/GoogleBtn";
 
 const Signup = () => {
-  const navigate = useNavigate()
-  const [name, setName] = useState("")
-  const [password, setPassword] = useState("")
-  const [email, setEmail] = useState("")
-  const [username, setUsername] = useState("")
-  const [image, setImage] = useState("")
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [image, setImage] = useState("");
   const [url, setUrl] = useState(
-    "https://res.cloudinary.com/cloudaditya/image/upload/v1610609840/noimages_r1ckl0.png"
+    "https://res.cloudinary.com/cloudaditya/image/upload/v1610609840/noimages_r1ckl0.png",
   );
 
   useEffect(() => {
     if (image) {
-      uploadPic()
+      uploadPic();
     }
-  }, [image])
+  }, [image]);
 
   const uploadPic = () => {
-    const data = new FormData()
-    data.append("file", image)
-    data.append("upload_preset", "social_network")
-    data.append("cloud_name", "digimode")
-    fetch(
-      "https://api.cloudinary.com/v1_1/digimode/image/upload", {
+    const data = new FormData();
+    data.append("file", image);
+    data.append("upload_preset", "social_network");
+    data.append("cloud_name", "digimode");
+    fetch("https://api.cloudinary.com/v1_1/digimode/image/upload", {
       method: "post",
-      body: data
+      body: data,
     })
-      .then(res => res.json())
-      .then(data => {
-        setUrl(data.url)
+      .then((res) => res.json())
+      .then((data) => {
+        setUrl(data.url);
       })
-      .catch(err => {
-        console.log(err)
-      })
-  }
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   const uploadFields = (e) => {
     e.preventDefault();
-    if (!
-      /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-        .test(email)) {
-      toast.error("Invalid Email")
-      return;
-    }
-    else if (
-      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/.test(
-        password
+    if (
+      !/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+        email,
       )
     ) {
-      toast.error(<p>password must include @,#,% or & special characters<div>atleast 1 uppercase, lowercase, number</div></p>)
+      toast.error("Invalid Email");
+      return;
+    } else if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/.test(
+        password,
+      )
+    ) {
+      toast.error(
+        <p>
+          password must include @,#,% or & special characters
+          <div>atleast 1 uppercase, lowercase, number</div>
+        </p>,
+      );
       return;
     }
     fetch("/signup", {
@@ -65,29 +70,28 @@ const Signup = () => {
         password,
         email: email.toLowerCase(),
         username,
-        pic: url
-      })
+        pic: url,
+      }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.error) {
-          toast.error(data.error)
+          toast.error(data.error);
         } else {
-          toast.success(data.message)
-          navigate('/signin')
+          toast.success(data.message);
+          navigate("/signin");
         }
-      }).catch(err => {
-        console.log(err)
       })
-}
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   return (
     <div className="mycard">
       <div className="card auth-card input-field">
         <h2> Connect All </h2>
-        <form
-          onSubmit={(e) => uploadFields(e)}
-        >
+        <form onSubmit={(e) => uploadFields(e)}>
           <input
             type="text"
             placeholder="name"
@@ -115,7 +119,10 @@ const Signup = () => {
           <div className="file-field input-field">
             <div className="btn  #64b5f6 blue darken-1">
               <span>Upload pic</span>
-              <input type="file" onChange={(e) => setImage(e.target.files[0])} />
+              <input
+                type="file"
+                onChange={(e) => setImage(e.target.files[0])}
+              />
             </div>
             <div className="file-path-wrapper">
               <input className="file-path validate" type="text" />

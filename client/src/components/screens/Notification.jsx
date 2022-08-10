@@ -19,7 +19,7 @@ const Notification = () => {
       const res = await axios.get(`/notifications?page=${page}`, {
         headers: authHeader(),
         signal: abortController.signal,
-      });      
+      });
       notificationDispatch({
         type: "ADD_NOTIFICATIONS",
         payload: {

@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useContext } from "react";
-import { UserContext } from "../../App";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import moment from "moment";
 const UserPostAdmin = () => {
   const [data, setData] = useState([]);
-  const { state, dispatch } = useContext(UserContext);
   const { postid } = useParams();
 
   useEffect(() => {
@@ -23,8 +21,6 @@ const UserPostAdmin = () => {
         console.log(data._id);
       });
   }, []);
-
-
 
   const deletePost = (postid) => {
     fetch(`/deletepost/${postid}`, {
@@ -48,34 +44,34 @@ const UserPostAdmin = () => {
   };
 
   const reportPost = (postid) => {
-   fetch(`/report/${postid}`, {
-     method: "put",
-     headers: {
-       "Content-Type": "application/json",
-       Authorization: "Bearer " + localStorage.getItem("jwt"),
-     },
-   })
-     .then((res) => res.json())
-     .then((result) => {
-       const newData = data.map((item) => {
-         if (item._id === result._id) {
-           return result;
-         } else {
-           return item;
-         }
-       });
-       //console.log(newData)
-       setData(newData);
-     })
-     .catch((err) => {
-       console.log(err);
-     });
-}
+    fetch(`/report/${postid}`, {
+      method: "put",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("jwt"),
+      },
+    })
+      .then((res) => res.json())
+      .then((result) => {
+        const newData = data.map((item) => {
+          if (item._id === result._id) {
+            return result;
+          } else {
+            return item;
+          }
+        });
+        //console.log(newData)
+        setData(newData);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   return (
     <>
       {data._id === undefined ? (
-        <div class="lds-heart">
+        <div className="lds-heart">
           <div></div>
         </div>
       ) : (
@@ -98,7 +94,7 @@ const UserPostAdmin = () => {
               </div>
             </Link>
 
-            {(
+            {
               <i
                 className="material-icons"
                 style={{
@@ -108,7 +104,7 @@ const UserPostAdmin = () => {
               >
                 delete
               </i>
-            )}
+            }
           </h5>
           <h5>
             <Link to={"/profile/" + data.postedBy._id}>
@@ -119,7 +115,6 @@ const UserPostAdmin = () => {
             <img src={data.photo} alt="" />
           </div>
           <div className="card-content">
-           
             <h6>{data.likesCount} likes</h6>
             <h6>{data.title}</h6>
             <p>
@@ -147,11 +142,11 @@ const UserPostAdmin = () => {
             <Link to={"/allcomments/" + data._id}>
               <p>view all {data.comments.length} comments</p>
             </Link>
-              <h6>
-                {moment().diff(moment(data.createdAt)) < 7 * 24 * 60 * 60 * 1000
-                  ? moment(data.createdAt).fromNow()
-                  : moment(data.createdAt).calendar()}
-              </h6>
+            <h6>
+              {moment().diff(moment(data.createdAt)) < 7 * 24 * 60 * 60 * 1000
+                ? moment(data.createdAt).fromNow()
+                : moment(data.createdAt).calendar()}
+            </h6>
           </div>
         </div>
       )}{" "}

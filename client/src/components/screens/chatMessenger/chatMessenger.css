@@ -1,80 +1,80 @@
-.messenger{
-    display:flex;
-    background-color: #fff;
-    height: calc(100vh - 64px);
-    width: 100%;
+.messenger {
+  display: flex;
+  background-color: #fff;
+  height: calc(100vh - 64px);
+  width: 100%;
 }
 
-.conversation-menu{
-    flex: 3.5;
+.conversation-menu {
+  flex: 3.5;
 }
 
-.chat-menu-input{
-    width: 90%;
-    padding: 10px 0;
-    border: none;
-    border-bottom: 1px solid gray;
+.chat-menu-input {
+  width: 90%;
+  padding: 10px 0;
+  border: none;
+  border-bottom: 1px solid gray;
 }
 
-.chat-box{
-    flex: 5.5;
+.chat-box {
+  flex: 5.5;
 }
 
-
-.chat-box-container{
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-    background-color: #f3f6fb;
+.chat-box-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  background-color: #f3f6fb;
 }
 
-.chat-box-top{
-    height: calc(100vh - 90px - 10px - 20px - 70px);
-    overflow-y: scroll;
-    padding-right: 10px;
+.chat-box-top {
+  height: calc(100vh - 90px - 10px - 20px - 70px);
+  overflow-y: scroll;
+  padding-right: 10px;
 }
 
-.chat-box-bottom{
-    margin-top: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: #fff;
-    border: 1px solid black;
-    padding: 5px;
-    border-radius: 10px;
+.chat-box-bottom {
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff;
+  border: 1px solid black;
+  padding: 5px;
+  border-radius: 10px;
 }
 
-.chat-message-input{
-    width: 80%;
-    height: 90px;
-    padding: 10px;
+.chat-message-input {
+  width: 80%;
+  height: 90px;
+  padding: 10px;
 }
 
-.chat-submit-button{
-    width: 70px;
-    height: 40px;
-    border: none;
-    border-radius: 5;
-    cursor: pointer;
-    background-color: teal;
-    color: #fff;
+.chat-submit-button {
+  width: 70px;
+  height: 40px;
+  border: none;
+  border-radius: 5;
+  cursor: pointer;
+  background-color: teal;
+  color: #fff;
 }
 
-.chat-online{
-    flex: 3;
+.chat-online {
+  flex: 3;
 }
 
-
-.conversation-container,.chat-box-container,.chat-online-container{
-    padding: 10px;
+.conversation-container,
+.chat-box-container,
+.chat-online-container {
+  padding: 10px;
 }
 
-.noConversationText{
-    position: absolute;
-    top: 10vh;
-    font-size: 50px;
-    color: rgb(216, 216, 216);
-    cursor: default;
+.noConversationText {
+  position: absolute;
+  top: 10vh;
+  font-size: 50px;
+  color: rgb(216, 216, 216);
+  cursor: default;
 }

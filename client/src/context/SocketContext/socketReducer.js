@@ -6,13 +6,13 @@ const socketNotification = io("ws://localhost:9011", {
   query: { token },
   autoConnect: false,
 });
-socketNotification.connect();
+if (token) socketNotification.connect();
 
 const socketChat = io("ws://localhost:9010", {
   query: { token },
   autoConnect: false,
 });
-socketChat.connect();
+if (token) socketChat.connect();
 
 export const initialSocketState = {
   notificationSocket: socketNotification,

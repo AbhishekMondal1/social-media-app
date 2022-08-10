@@ -1,10 +1,10 @@
-import React from 'react';
-import './skeletonPostGridLoader.css';
+import React from "react";
+import "./skeletonPostGridLoader.css";
 const SkeletonPostGridLoader = () => {
   return (
     <section className="grid-section">
       <div className="grid-wrapper">
-        <div className='flex-grid'>
+        <div className="flex-grid">
           <span className="skeleton-box boxsize" />
           <span className="skeleton-box boxsize" />
           <span className="skeleton-box boxsize" />
@@ -18,6 +18,6 @@ const SkeletonPostGridLoader = () => {
       </div>
     </section>
   );
-}
+};
 
-export default SkeletonPostGridLoader
+export default SkeletonPostGridLoader;
