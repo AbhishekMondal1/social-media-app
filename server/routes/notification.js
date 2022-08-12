@@ -1,10 +1,17 @@
-const express = require("express");
+const express = require('express');
+const isAuthorized = require('../middleware/isAuthorized');
+const { getAllNotifications } = require('../controllers/notification');
+
 const router = express.Router();
-const isAuthorized = require("../middleware/isAuthorized");
-const { getAllNotifications } = require("../controllers/notification");
 
 // get all notifications
-router.get("/", isAuthorized, getAllNotifications);
+router.get('/', isAuthorized, getAllNotifications);
 
+// read notification
+// router.put(
+//   '/:notificationId',
+//   isAuthorized,
+//   require('../controllers/notification').readNotification,
+// );
 
 module.exports = router;

@@ -1,11 +1,10 @@
 const { default: AdminBro } = require('admin-bro');
 const AdminBroMongoose = require('@admin-bro/mongoose');
 
-AdminBro.registerAdapter(AdminBroMongoose);
-
-const User  = require('../models/user');
+const User = require('../models/user');
 const { post } = require('../models/post');
-const { comment } = require('../models/comment');
+
+AdminBro.registerAdapter(AdminBroMongoose);
 
 /** @type {import('admin-bro').AdminBroOptions} */
 const options = {

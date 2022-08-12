@@ -1,109 +1,110 @@
-const express = require('express')
-const app = express()
-const mongoose = require('mongoose')
+const express = require('express');
+const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
-const PORT = process.env.PORT || 5000
-const { MONGOURI } = require('./config/keys')
-const { JWT_SECRET } = require('./config/keys')
-const cors = require('cors')
-const bodyParser = require('body-parser')
-const { urlencoded, json } = require('body-parser')
-const passport = require('passport')
-const cookieSession = require("cookie-session");
-const run = require('./admin/adminServer')
+const cors = require('cors');
+const passport = require('passport');
+const cookieSession = require('cookie-session');
 const cookieParser = require('cookie-parser');
+const path = require('path');
+const run = require('./admin/adminServer');
 
-app.use(cors({
-  origin: "https://localhost:3005",
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  credentials: true
-}))
+/* eslint-disable no-unused-vars */
+const app = express();
+const PORT = process.env.PORT || 5000;
+const { MONGOURI } = require('./config/keys');
+const { JWT_SECRET } = require('./config/keys');
+
+app.use(
+  cors({
+    origin: 'https://localhost:3005',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  }),
+);
 
 const dbconnection = mongoose.connect(MONGOURI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+  useUnifiedTopology: true,
+});
 mongoose.connection.on('connected', () => {
-  console.log("Mongoose CONNECTED!!")
-})
+  console.log('Mongoose CONNECTED!!');
+});
 mongoose.connection.on('error', (err) => {
-  console.log("err connection", err)
-})
+  console.log('err connection', err);
+});
 
-
-app.use(cookieSession({
-  name: 'socialsession',
-  maxAge: 24 * 60 * 60 * 1000,
-  keys: ['secret'],
-  resave: false,
-  saveUninitialized: true
-}))
+app.use(
+  cookieSession({
+    name: 'socialsession',
+    maxAge: 24 * 60 * 60 * 1000,
+    keys: ['secret'],
+    resave: false,
+    saveUninitialized: true,
+  }),
+);
 
 app.use(cookieParser());
 app.use(passport.initialize());
 app.use(passport.session());
 
-const conversationRoute = require('./routes/conversations')
-const messageRoute = require('./routes/messages')
-const notificationRoute = require('./routes/notification')
-require('./models/user')
-const User = require('./models/user')
-require('./models/post')
-app.use(express.json())
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(require('./routes/auth'))
-app.use(require('./routes/post'))
-app.use(require('./routes/user'))
-app.use("/conversation", conversationRoute)
-app.use("/messages", messageRoute)
-const adminRouter = require('./admin/admin.router')
-app.use('/admin', adminRouter)
+
+const conversationRoute = require('./routes/conversations');
+const messageRoute = require('./routes/messages');
+const notificationRoute = require('./routes/notification');
+require('./models/user');
+const User = require('./models/user');
+require('./models/post');
+app.use(require('./routes/auth'));
+app.use(require('./routes/post'));
+app.use(require('./routes/user'));
+
+app.use('/conversation', conversationRoute);
+app.use('/messages', messageRoute);
+
+const adminRouter = require('./admin/admin.router');
+
+app.use('/admin', adminRouter);
 app.use('/notifications', notificationRoute);
 // app.use(require('./routes/adminroutes'))
-require('./middleware/passport_setup')
+require('./middleware/passport_setup');
 
-app.get("/check", (req, res) => {
+app.get('/check', (req, res) => {
   console.log('req', req);
   console.log('res', res);
-  res.json({ s: "ok" });
+  res.json({ s: 'ok' });
 });
 
-//app.use(adminBro.options.rootPath, adminrouter);
-/*
-app.use(bodyParser,urlencoded({extended:false}))
-
-app.use(bodyParser, json())
-
-*/
+// app.use(adminBro.options.rootPath, adminrouter);
 
 app.get(
-  "/auth/google",
-  passport.authenticate("google", {
+  '/auth/google',
+  passport.authenticate('google', {
     session: false,
-    scope: ["profile", "email"],
-  })
+    scope: ['profile', 'email'],
+  }),
 );
 
 app.get(
-  "/auth/google/callback",
-  passport.authenticate("google", { failureRedirect: '/failure' }),
+  '/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/failure' }),
   (req, res) => {
-    res.redirect("https://localhost:3005/")
-  }
+    res.redirect('https://localhost:3005/');
+  },
 );
 
-if (process.env.NODE_ENV == "production") {
-  app.use(express.static('client/build'))
-  const path = require('path')
-  app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'))
-  })
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static('client/build'));
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'));
+  });
 }
 
 // --------- socket.io ----------
-const io = require("socket.io")(9010, {
+const io = require('socket.io')(9010, {
   cors: {
-    origin: "https://localhost:3005",
+    origin: 'https://localhost:3005',
   },
 });
 
@@ -114,6 +115,7 @@ const addUser = (userId, socketId) => {
   !onlineUsers.some((user) => user.userId === userId) &&
     onlineUsers.push({ userId, socketId });
   console.log(onlineUsers);
+  return 0;
 };
 
 // remove user from onlineUsers list
@@ -124,118 +126,131 @@ const removeUser = (socketId) => {
 
 // get userid of msg receiver
 const getUser = (userId) => {
-  return onlineUsers.find((user) => user.userId === userId);
+  const user = onlineUsers.find((onlineUser) => onlineUser.userId === userId);
+  return user;
 };
 
 const getUserSocket = async (userId) => {
-  return await onlineUsers.find((user) => user.userId == userId);
+  const user = await onlineUsers.find(
+    (onlineUser) => onlineUser.userId == userId,
+  );
+  return user;
 };
 
 const getUserIdBySocketId = async (socketId) => {
-  return await onlineUsers.find((user) => user.socketId == socketId);
+  const user = await onlineUsers.find(
+    (onlineUser) => onlineUser.socketId == socketId,
+  );
+  return user;
 };
 
 const findOnlinefollowingUsers = async (userId) => {
   const userid = mongoose.Types.ObjectId(userId);
   const followingUsersIds = await User.aggregate([
     {
-      '$match': {
-        '_id': userid,
-      }
-    }, {
-      '$project': {
-        'following': 1
-      }
-    }
-  ])
+      $match: {
+        _id: userid,
+      },
+    },
+    {
+      $project: {
+        following: 1,
+      },
+    },
+  ]);
   if (followingUsersIds[0]) {
-    const onlineFollowingUsersIds = followingUsersIds[0].following.filter((f) => onlineUsers.some((u) => u.userId == f))
-    return onlineFollowingUsersIds
+    const onlineFollowingUsersIds = followingUsersIds[0].following.filter((f) =>
+      onlineUsers.some((u) => u.userId == f),
+    );
+    return onlineFollowingUsersIds;
   }
-}
+};
 
 const findOnlinefollowerUsers = async (userId) => {
   const userid = mongoose.Types.ObjectId(userId);
   const followerUsersIds = await User.aggregate([
     {
-      '$match': {
-        '_id': userid,
-      }
-    }, {
-      '$project': {
-        'followers': 1
-      }
-    }
-  ])
+      $match: {
+        _id: userid,
+      },
+    },
+    {
+      $project: {
+        followers: 1,
+      },
+    },
+  ]);
   if (followerUsersIds[0]) {
-    const onlineFollowerUsersIds = followerUsersIds[0].followers.filter((f) => onlineUsers.some((u) => u.userId == f))
-    return onlineFollowerUsersIds
+    const onlineFollowerUsersIds = followerUsersIds[0].followers.filter((f) =>
+      onlineUsers.some((u) => u.userId == f),
+    );
+    return onlineFollowerUsersIds;
   }
-}
+};
 
-io.on("connection", (socket) => {
+io.on('connection', (socket) => {
   // when connect
   jwt.verify(socket.handshake.query.token, JWT_SECRET, (err, decoded) => {
     if (err) {
-      console.log("err", err);
+      console.log('err', err);
     } else {
-      //take userId and socketId from user
-      socket.on("addUser", async (userId) => {
+      // take userId and socketId from user
+      socket.on('addUser', async (userId) => {
         if (userId != null) {
           addUser(userId, socket.id);
-          const onlineUsersIds = await findOnlinefollowingUsers(userId)
+          const onlineUsersIds = await findOnlinefollowingUsers(userId);
           const usersocket = getUser(userId);
-          io.to(usersocket?.socketId).emit("getUsers", onlineUsersIds);
+          io.to(usersocket?.socketId).emit('getUsers', onlineUsersIds);
 
-          const onlineFollowersIds = await findOnlinefollowerUsers(userId)
+          const onlineFollowersIds = await findOnlinefollowerUsers(userId);
           onlineFollowersIds?.forEach(async (followerId) => {
             const followersocket = await getUserSocket(followerId);
-            io.to(followersocket?.socketId).emit("followerConnected", [userId]);
-          })
+            io.to(followersocket?.socketId).emit('followerConnected', [userId]);
+          });
         }
       });
 
       // send and get message
-      socket.on("sendMessage", ({ senderId, receiverId, text }) => {
+      socket.on('sendMessage', ({ senderId, receiverId, text }) => {
         try {
           const user = getUser(receiverId);
-          io.to(user?.socketId).emit("getMessage", {
+          io.to(user?.socketId).emit('getMessage', {
             senderId,
             text,
           });
         } catch (error) {
-          console.log("Error occured", error)
+          console.log('Error occured', error);
         }
       });
 
       // when disconnect remove the user from user list and fetch new onlineUsers list
-      socket.on("disconnect", async () => {
+      socket.on('disconnect', async () => {
         const user = await getUserIdBySocketId(socket.id);
         if (user?.userId != null) {
-          const userId = user.userId;
-          const onlineFollowersIds = await findOnlinefollowerUsers(userId)
+          const { userId } = user;
+          const onlineFollowersIds = await findOnlinefollowerUsers(userId);
           onlineFollowersIds?.forEach(async (followerId) => {
             const followersocket = await getUserSocket(followerId);
-            io.to(followersocket?.socketId).emit("followerDisconnected", [userId]);
-          })
+            io.to(followersocket?.socketId).emit('followerDisconnected', [
+              userId,
+            ]);
+          });
           removeUser(socket.id);
         }
       });
     }
-  })
-}
-);
-
-const Notification = require('./models/notification')
-const Post = require('./models/post')
-
-// NOTIFICATION SOCKET
-const io2 = require("socket.io")(9011, {
-  cors: {
-    origin: "https://localhost:3005",
-  },
+  });
 });
 
+const Notification = require('./models/notification');
+const Post = require('./models/post');
+
+// NOTIFICATION SOCKET
+const io2 = require('socket.io')(9011, {
+  cors: {
+    origin: 'https://localhost:3005',
+  },
+});
 
 let globalOnlineUsers = [];
 
@@ -248,135 +263,155 @@ const addGlobalUser = (userId, socketId) => {
 
 // remove user from globalOnlineUsers list
 const removeGlobalUser = (socketId) => {
-  globalOnlineUsers = globalOnlineUsers.filter((user) => user.socketId !== socketId);
+  globalOnlineUsers = globalOnlineUsers.filter(
+    (user) => user.socketId !== socketId,
+  );
   console.log(globalOnlineUsers);
 };
 
 // get userid of notification receiver
 const getGlobalUser = (userId) => {
-  return globalOnlineUsers.find((user) => user.userId === userId);
+  const receiver = globalOnlineUsers.find((user) => user.userId === userId);
+  return receiver;
 };
 
 const getGlobalUserSocket = async (userId) => {
-  return await onlineUsers.find((user) => user.userId == userId);
+  const receiverSocket = await onlineUsers.find(
+    (user) => user.userId === userId,
+  );
+  return receiverSocket;
 };
-
-
-io2.on("connection", (socket) => {
+io2.on('connection', (socket) => {
   jwt.verify(socket.handshake.query.token, JWT_SECRET, (err, decoded) => {
+    // console.log('decoded', decoded);
     if (err) {
-      console.log("err", err);
+      console.log('err', err);
     } else {
-      console.log("notification socket connected", socket.id, "online users", globalOnlineUsers);
-      socket.on("joinNotification", async (userId) => {
-        console.log("notification JOIN", userId, socket.id);
-        if(userId != null){
+      console.log(
+        'notification socket connected',
+        socket.id,
+        'online users',
+        globalOnlineUsers,
+      );
+      socket.on('joinNotification', async (userId) => {
+        console.log('notification JOIN', userId, socket.id);
+        if (userId != null) {
           addGlobalUser(userId, socket.id);
-        }   
-      })
-      socket.on("sendNotification", async ({senderId, receiverId, postId, notificationType}) => {
-        const user = await getGlobalUser(receiverId);
-        console.log("send noti", senderId, receiverId, postId, notificationType)
-        console.log("user",globalOnlineUsers, user)
-
-
-        // insert into notification
-        const senderUser = await User.findById(senderId)
-        let notificationText = ""
-        if(notificationType === "like"){
-          notificationText = `${senderUser.username} liked your post.`
         }
-        if(notificationType === "comment"){
-          notificationText = `${senderUser.username} commented on your post.`
-        }
-        if(notificationType === "follow"){
-          notificationText = `${senderUser.username} started following you.`
-        }
-        const notification = new Notification({
-          senderId,
-          receiverId,
-          notificationType,
-          notificationText,
-          link: mongoose.Types.ObjectId(postId),
-        })
-        await notification.save()
-        console.log("notification", notification)
+      });
+      socket.on(
+        'sendNotification',
+        async ({ senderId, receiverId, postId, notificationType }) => {
+          const user = await getGlobalUser(receiverId);
+          console.log(
+            'send noti',
+            senderId,
+            receiverId,
+            postId,
+            notificationType,
+          );
+          console.log('user', globalOnlineUsers, user);
 
-        const notificationSend = await Notification.aggregate([
-          {
-            $match: {
-              '_id': notification._id,
-            }
-          }, {
-            $lookup: {
-              from: 'users', 
-              localField: 'senderId', 
-              foreignField: '_id', 
-              as: 'sender'
-            }
-          }, {
-            $lookup: {
-              from: 'posts', 
-              localField: 'link', 
-              foreignField: '_id', 
-              as: 'post'
-            }
-          }, {
-            $unwind: {
-              path: '$sender',
-              preserveNullAndEmptyArrays: false
-            }
-          }, {
-            $set: {
-              'following': {
-                $cond: {
-                  if: {
-                    $eq: ['$notificationType', 'follow']
-                  }, 
-                  then: {
-                    $in: ["$receiverId", "$sender.followers"]
-                   },
-                  else: '$$REMOVE'
-                }
-              }
-            }
-          }, {
-            $project: {
-              _id: 1,
-              'sender._id': 1,
-              'sender.username': 1, 
-              'sender.pic': 1, 
-              notificationType: 1, 
-              notificationText: 1,
-              'post._id': 1,
-              'post.photo': 1, 
-              following: 1,
-              read: 1,
-              link: 1,
-              createdAt: 1
-            }
+          // insert into notification
+          const senderUser = await User.findById(senderId);
+          let notificationText = '';
+          if (notificationType === 'like') {
+            notificationText = `${senderUser.username} liked your post.`;
           }
-        ])
+          if (notificationType === 'comment') {
+            notificationText = `${senderUser.username} commented on your post.`;
+          }
+          if (notificationType === 'follow') {
+            notificationText = `${senderUser.username} started following you.`;
+          }
+          const notification = new Notification({
+            senderId,
+            receiverId,
+            notificationType,
+            notificationText,
+            link: mongoose.Types.ObjectId(postId),
+          });
+          await notification.save();
+          console.log('notification', notification);
 
-        console.log("noti send",notificationSend)
-        io2.to(user?.socketId).emit("getNotification", { 
-          notificationSend,
-          
-        });
-      })
-      socket.on("disconnect", () => {
-        console.log("notification socket disconnected", socket.id);
-      console.log("online users", globalOnlineUsers);
+          const notificationSend = await Notification.aggregate([
+            {
+              $match: {
+                _id: notification._id,
+              },
+            },
+            {
+              $lookup: {
+                from: 'users',
+                localField: 'senderId',
+                foreignField: '_id',
+                as: 'sender',
+              },
+            },
+            {
+              $lookup: {
+                from: 'posts',
+                localField: 'link',
+                foreignField: '_id',
+                as: 'post',
+              },
+            },
+            {
+              $unwind: {
+                path: '$sender',
+                preserveNullAndEmptyArrays: false,
+              },
+            },
+            {
+              $set: {
+                following: {
+                  $cond: {
+                    if: {
+                      $eq: ['$notificationType', 'follow'],
+                    },
+                    then: {
+                      $in: ['$receiverId', '$sender.followers'],
+                    },
+                    else: '$$REMOVE',
+                  },
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                'sender._id': 1,
+                'sender.username': 1,
+                'sender.pic': 1,
+                notificationType: 1,
+                notificationText: 1,
+                'post._id': 1,
+                'post.photo': 1,
+                following: 1,
+                read: 1,
+                link: 1,
+                createdAt: 1,
+              },
+            },
+          ]);
 
+          console.log('noti send', notificationSend);
+          io2.to(user?.socketId).emit('getNotification', {
+            notificationSend,
+          });
+        },
+      );
+      socket.on('disconnect', () => {
+        console.log('notification socket disconnected', socket.id);
+        console.log('online users', globalOnlineUsers);
         removeGlobalUser(socket.id);
-      }
-      )
+      });
     }
-  })
-})
+  });
+});
 
-run()
+run();
 
 app.listen(PORT, () => {
-  console.log("Server is Running", PORT);
-})
+  console.log('Server is Running', PORT);
+});
