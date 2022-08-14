@@ -12,8 +12,6 @@ export const chatReducer = (state, action) => {
         ],
       };
     case "REMOVE_ONLINE_USER":
-      console.log("state", state.usersOnline);
-      console.log("payload", action.payload);
       return {
         ...state,
         usersOnline: state.usersOnline.filter(

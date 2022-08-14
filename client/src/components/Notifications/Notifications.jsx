@@ -14,6 +14,25 @@ const Notifications = ({ notification }) => {
   const { socketState } = useContext(SocketContext);
   const { notificationDispatch } = useContext(NotificationContext);
 
+  const readNotification = async (notificationId) => {
+    const res = await axios.put(
+      `/notifications/${notificationId}`,
+      {},
+      {
+        headers: authHeader(),
+      },
+    );
+    console.log(res.data._id);
+    if (res.data._id === notificationId) {
+      notificationDispatch({
+        type: "READ_NOTIFICATION",
+        payload: {
+          notificationId,
+        },
+      });
+    }
+  };
+
   const followUser = (userid) => {
     socketState.notificationSocket?.emit("sendNotification", {
       senderId: userState._id,
@@ -89,7 +108,16 @@ const Notifications = ({ notification }) => {
   return (
     <>
       {notification && (
-        <div className="notification-container">
+        <div
+          className="notification-container"
+          onClick={() => {
+            !notification.read && readNotification(notification._id);
+          }}
+        >
+          {!notification.read && (
+            <div className="unread-notification-dot"></div>
+          )}
+
           <div>
             <Link to={`/profile/${notification.sender?._id}`}>
               <img
