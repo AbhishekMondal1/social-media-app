@@ -95,6 +95,23 @@ const getAllNotifications = async (req, res) => {
   }
 };
 
+// read a notification
+const readNotification = async (req, res) => {
+  try {
+    const notification = await Notification.findByIdAndUpdate(
+      req.params.notificationId,
+      { read: true },
+      { new: true },
+    );
+    res
+      .status(200)
+      .json({ notificationRead: notification.read, _id: notification._id });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+};
+
 module.exports = {
   getAllNotifications,
+  readNotification,
 };

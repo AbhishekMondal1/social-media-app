@@ -32,7 +32,11 @@ export const notificationReducer = (state, action) => {
       };
     case "READ_NOTIFICATION": {
       const notifications = JSON.parse(JSON.stringify(state.notifications));
-      notifications.forEach((notification) => (notification.read = true));
+      notifications.forEach(
+        (notification) =>
+          notification._id === action.payload.notificationId &&
+          (notification.read = true),
+      );
       return {
         ...state,
         unreadCount: 0,
