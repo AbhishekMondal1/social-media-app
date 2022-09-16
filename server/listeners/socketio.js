@@ -1,6 +1,7 @@
 const socketio = require('socket.io');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
+const redisClient = require('../database/redis');
 const User = require('../models/user');
 const Notification = require('../models/notification');
 const { JWT_SECRET } = require('../config/keys');
@@ -13,27 +14,27 @@ const notificationSocket = (serverUrl) => {
     },
   });
 
-  let globalOnlineUsers = [];
-
   // add user to globalOnlineUsers list
-  const addGlobalUser = (userId, socketId) => {
-    !globalOnlineUsers.some((user) => user.userId === userId) &&
-      globalOnlineUsers.push({ userId, socketId });
-    console.log(globalOnlineUsers);
+  const addGlobalUser = async (userId, socketId) => {
+    await redisClient.hSet(
+      'globalOnlineUsers',
+      `userId:${userId}`,
+      JSON.stringify({ socketId }),
+    );
   };
 
   // remove user from globalOnlineUsers list
-  const removeGlobalUser = (socketId) => {
-    globalOnlineUsers = globalOnlineUsers.filter(
-      (user) => user.socketId !== socketId,
-    );
-    console.log(globalOnlineUsers);
+  const removeGlobalUser = async (userId) => {
+    await redisClient.hDel('globalOnlineUsers', `userId:${userId}`);
   };
 
-  // get userid of notification receiver
-  const getGlobalUser = (userId) => {
-    const receiver = globalOnlineUsers.find((user) => user.userId === userId);
-    return receiver;
+  // get socketid of notification receiver
+  const getGlobalUser = async (userId) => {
+    let user = await redisClient.hGet('globalOnlineUsers', `userId:${userId}`);
+    if (user) {
+      user = JSON.parse(user);
+      return user;
+    }
   };
 
   ioNotification.on('connection', (socket) => {
@@ -41,14 +42,7 @@ const notificationSocket = (serverUrl) => {
       if (err) {
         console.log('err', err);
       } else {
-        console.log(
-          'notification socket connected',
-          socket.id,
-          'online users',
-          globalOnlineUsers,
-        );
         socket.on('joinNotification', async (userId) => {
-          console.log('notification JOIN', userId, socket.id);
           if (userId != null) {
             addGlobalUser(userId, socket.id);
           }
@@ -57,16 +51,8 @@ const notificationSocket = (serverUrl) => {
           'sendNotification',
           async ({ senderId, receiverId, postId, notificationType }) => {
             const user = await getGlobalUser(receiverId);
-            console.log(
-              'send noti',
-              senderId,
-              receiverId,
-              postId,
-              notificationType,
-            );
-            console.log('user', globalOnlineUsers, user);
 
-            // insert into notification
+            // insert into notifications collection
             const senderUser = await User.findById(senderId);
             let notificationText = '';
             if (notificationType === 'like') {
@@ -86,7 +72,6 @@ const notificationSocket = (serverUrl) => {
               link: mongoose.Types.ObjectId(postId),
             });
             await notification.save();
-            console.log('notification', notification);
 
             const notificationSend = await Notification.aggregate([
               {
@@ -149,16 +134,13 @@ const notificationSocket = (serverUrl) => {
               },
             ]);
 
-            console.log('noti send', notificationSend);
             ioNotification.to(user?.socketId).emit('getNotification', {
               notificationSend,
             });
           },
         );
         socket.on('disconnect', () => {
-          console.log('notification socket disconnected', socket.id);
-          console.log('online users', globalOnlineUsers);
-          removeGlobalUser(socket.id);
+          removeGlobalUser(decoded?._id);
         });
       }
     });
@@ -174,40 +156,27 @@ const messageSocket = (serverUrl) => {
     },
   });
 
-  let onlineUsers = [];
-
   // add user to onlineUsers list
-  const addUser = (userId, socketId) => {
-    !onlineUsers.some((user) => user.userId === userId) &&
-      onlineUsers.push({ userId, socketId });
-    console.log(onlineUsers);
-    return 0;
+  const addUser = async (userId, socketId) => {
+    await redisClient.hSet(
+      'onlineUsers',
+      `userId:${userId}`,
+      JSON.stringify({ socketId }),
+    );
   };
 
   // remove user from onlineUsers list
-  const removeUser = (socketId) => {
-    onlineUsers = onlineUsers.filter((user) => user.socketId !== socketId);
-    console.log(onlineUsers);
+  const removeUser = async (userId) => {
+    await redisClient.hDel('onlineUsers', `userId:${userId}`);
   };
 
-  // get userid of msg receiver
-  const getUser = (userId) => {
-    const user = onlineUsers.find((onlineUser) => onlineUser.userId === userId);
-    return user;
-  };
-
-  const getUserSocket = async (userId) => {
-    const user = await onlineUsers.find(
-      (onlineUser) => onlineUser.userId == userId,
-    );
-    return user;
-  };
-
-  const getUserIdBySocketId = async (socketId) => {
-    const user = await onlineUsers.find(
-      (onlineUser) => onlineUser.socketId == socketId,
-    );
-    return user;
+  // get socketid of msg receiver
+  const getUser = async (userId) => {
+    let user = await redisClient.hGet('onlineUsers', `userId:${userId}`);
+    if (user) {
+      user = JSON.parse(user);
+      return user;
+    }
   };
 
   const findOnlinefollowingUsers = async (userId) => {
@@ -224,10 +193,25 @@ const messageSocket = (serverUrl) => {
         },
       },
     ]);
-    if (followingUsersIds[0]) {
-      const onlineFollowingUsersIds = followingUsersIds[0].following.filter(
-        (f) => onlineUsers.some((u) => u.userId == f),
+
+    const onlineFollowings = async (followId) => {
+      const isOnline = await redisClient.hExists(
+        'onlineUsers',
+        `userId:${followId}`,
       );
+      return isOnline;
+    };
+
+    const onlineFollowingUsersIds = [];
+
+    if (followingUsersIds[0]) {
+      const promises = followingUsersIds[0].following.map(async (followId) => {
+        const isOnline = await onlineFollowings(followId);
+        if (isOnline) {
+          onlineFollowingUsersIds.push(followId);
+        }
+      });
+      await Promise.all(promises);
       return onlineFollowingUsersIds;
     }
   };
@@ -246,16 +230,31 @@ const messageSocket = (serverUrl) => {
         },
       },
     ]);
-    if (followerUsersIds[0]) {
-      const onlineFollowerUsersIds = followerUsersIds[0].followers.filter((f) =>
-        onlineUsers.some((u) => u.userId == f),
+
+    const onlineFollowers = async (followId) => {
+      const isOnline = await redisClient.hExists(
+        'onlineUsers',
+        `userId:${followId}`,
       );
+      return isOnline;
+    };
+
+    const onlineFollowerUsersIds = [];
+
+    if (followerUsersIds[0]) {
+      const promises = followerUsersIds[0].followers.map(async (followId) => {
+        const isOnline = await onlineFollowers(followId);
+        if (isOnline) {
+          onlineFollowerUsersIds.push(followId);
+        }
+      });
+      await Promise.all(promises);
       return onlineFollowerUsersIds;
     }
   };
 
   io.on('connection', (socket) => {
-    // when connect
+    // when user connects
     jwt.verify(socket.handshake.query.token, JWT_SECRET, (err, decoded) => {
       if (err) {
         console.log('err', err);
@@ -265,12 +264,11 @@ const messageSocket = (serverUrl) => {
           if (userId != null) {
             addUser(userId, socket.id);
             const onlineUsersIds = await findOnlinefollowingUsers(userId);
-            const usersocket = getUser(userId);
+            const usersocket = await getUser(userId);
             io.to(usersocket?.socketId).emit('getUsers', onlineUsersIds);
-
             const onlineFollowersIds = await findOnlinefollowerUsers(userId);
             onlineFollowersIds?.forEach(async (followerId) => {
-              const followersocket = await getUserSocket(followerId);
+              const followersocket = await getUser(followerId);
               io.to(followersocket?.socketId).emit('followerConnected', [
                 userId,
               ]);
@@ -279,9 +277,9 @@ const messageSocket = (serverUrl) => {
         });
 
         // send and get message
-        socket.on('sendMessage', ({ senderId, receiverId, text }) => {
+        socket.on('sendMessage', async ({ senderId, receiverId, text }) => {
           try {
-            const user = getUser(receiverId);
+            const user = await getUser(receiverId);
             io.to(user?.socketId).emit('getMessage', {
               senderId,
               text,
@@ -293,17 +291,17 @@ const messageSocket = (serverUrl) => {
 
         // when disconnect remove the user from user list and fetch new onlineUsers list
         socket.on('disconnect', async () => {
-          const user = await getUserIdBySocketId(socket.id);
-          if (user?.userId != null) {
-            const { userId } = user;
+          const user = await getUser(decoded?._id);
+          if (user?.socketId != null) {
+            const userId = decoded?._id;
             const onlineFollowersIds = await findOnlinefollowerUsers(userId);
             onlineFollowersIds?.forEach(async (followerId) => {
-              const followersocket = await getUserSocket(followerId);
+              const followersocket = await getUser(followerId);
               io.to(followersocket?.socketId).emit('followerDisconnected', [
                 userId,
               ]);
             });
-            removeUser(socket.id);
+            removeUser(decoded?._id);
           }
         });
       }
