@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const redisClient = require('../database/redis');
 const User = require('../models/user');
 const Notification = require('../models/notification');
-const { JWT_SECRET } = require('../config/keys');
 
 // Notification Socket
 const notificationSocket = (serverUrl) => {
@@ -38,112 +37,116 @@ const notificationSocket = (serverUrl) => {
   };
 
   ioNotification.on('connection', (socket) => {
-    jwt.verify(socket.handshake.query.token, JWT_SECRET, (err, decoded) => {
-      if (err) {
-        console.log('err', err);
-      } else {
-        socket.on('joinNotification', async (userId) => {
-          if (userId != null) {
-            addGlobalUser(userId, socket.id);
-          }
-        });
-        socket.on(
-          'sendNotification',
-          async ({ senderId, receiverId, postId, notificationType }) => {
-            const user = await getGlobalUser(receiverId);
+    jwt.verify(
+      socket.handshake.query.token,
+      process.env.JWT_SECRET,
+      (err, decoded) => {
+        if (err) {
+          console.log('err', err);
+        } else {
+          socket.on('joinNotification', async (userId) => {
+            if (userId != null) {
+              addGlobalUser(userId, socket.id);
+            }
+          });
+          socket.on(
+            'sendNotification',
+            async ({ senderId, receiverId, postId, notificationType }) => {
+              const user = await getGlobalUser(receiverId);
 
-            // insert into notifications collection
-            const senderUser = await User.findById(senderId);
-            let notificationText = '';
-            if (notificationType === 'like') {
-              notificationText = `${senderUser.username} liked your post.`;
-            }
-            if (notificationType === 'comment') {
-              notificationText = `${senderUser.username} commented on your post.`;
-            }
-            if (notificationType === 'follow') {
-              notificationText = `${senderUser.username} started following you.`;
-            }
-            const notification = new Notification({
-              senderId,
-              receiverId,
-              notificationType,
-              notificationText,
-              link: mongoose.Types.ObjectId(postId),
-            });
-            await notification.save();
+              // insert into notifications collection
+              const senderUser = await User.findById(senderId);
+              let notificationText = '';
+              if (notificationType === 'like') {
+                notificationText = `${senderUser.username} liked your post.`;
+              }
+              if (notificationType === 'comment') {
+                notificationText = `${senderUser.username} commented on your post.`;
+              }
+              if (notificationType === 'follow') {
+                notificationText = `${senderUser.username} started following you.`;
+              }
+              const notification = new Notification({
+                senderId,
+                receiverId,
+                notificationType,
+                notificationText,
+                link: mongoose.Types.ObjectId(postId),
+              });
+              await notification.save();
 
-            const notificationSend = await Notification.aggregate([
-              {
-                $match: {
-                  _id: notification._id,
+              const notificationSend = await Notification.aggregate([
+                {
+                  $match: {
+                    _id: notification._id,
+                  },
                 },
-              },
-              {
-                $lookup: {
-                  from: 'users',
-                  localField: 'senderId',
-                  foreignField: '_id',
-                  as: 'sender',
+                {
+                  $lookup: {
+                    from: 'users',
+                    localField: 'senderId',
+                    foreignField: '_id',
+                    as: 'sender',
+                  },
                 },
-              },
-              {
-                $lookup: {
-                  from: 'posts',
-                  localField: 'link',
-                  foreignField: '_id',
-                  as: 'post',
+                {
+                  $lookup: {
+                    from: 'posts',
+                    localField: 'link',
+                    foreignField: '_id',
+                    as: 'post',
+                  },
                 },
-              },
-              {
-                $unwind: {
-                  path: '$sender',
-                  preserveNullAndEmptyArrays: false,
+                {
+                  $unwind: {
+                    path: '$sender',
+                    preserveNullAndEmptyArrays: false,
+                  },
                 },
-              },
-              {
-                $set: {
-                  following: {
-                    $cond: {
-                      if: {
-                        $eq: ['$notificationType', 'follow'],
+                {
+                  $set: {
+                    following: {
+                      $cond: {
+                        if: {
+                          $eq: ['$notificationType', 'follow'],
+                        },
+                        then: {
+                          $in: ['$receiverId', '$sender.followers'],
+                        },
+                        else: '$$REMOVE',
                       },
-                      then: {
-                        $in: ['$receiverId', '$sender.followers'],
-                      },
-                      else: '$$REMOVE',
                     },
                   },
                 },
-              },
-              {
-                $project: {
-                  _id: 1,
-                  'sender._id': 1,
-                  'sender.username': 1,
-                  'sender.pic': 1,
-                  notificationType: 1,
-                  notificationText: 1,
-                  'post._id': 1,
-                  'post.photo': 1,
-                  following: 1,
-                  read: 1,
-                  link: 1,
-                  createdAt: 1,
+                {
+                  $project: {
+                    _id: 1,
+                    'sender._id': 1,
+                    'sender.username': 1,
+                    'sender.pic': 1,
+                    notificationType: 1,
+                    notificationText: 1,
+                    'post._id': 1,
+                    'post.photo': 1,
+                    following: 1,
+                    read: 1,
+                    link: 1,
+                    createdAt: 1,
+                  },
                 },
-              },
-            ]);
+              ]);
 
-            ioNotification.to(user?.socketId).emit('getNotification', {
-              notificationSend,
-            });
-          },
-        );
-        socket.on('disconnect', () => {
-          removeGlobalUser(decoded?._id);
-        });
-      }
-    });
+              ioNotification.to(user?.socketId).emit('getNotification', {
+                notificationSend,
+              });
+            },
+          );
+          socket.on('disconnect', () => {
+            removeGlobalUser(decoded?._id);
+          });
+        }
+      },
+    );
   });
   return ioNotification;
 };
@@ -255,57 +258,61 @@ const messageSocket = (serverUrl) => {
 
   io.on('connection', (socket) => {
     // when user connects
-    jwt.verify(socket.handshake.query.token, JWT_SECRET, (err, decoded) => {
-      if (err) {
-        console.log('err', err);
-      } else {
-        // take userId and socketId from user
-        socket.on('addUser', async (userId) => {
-          if (userId != null) {
-            addUser(userId, socket.id);
-            const onlineUsersIds = await findOnlinefollowingUsers(userId);
-            const usersocket = await getUser(userId);
-            io.to(usersocket?.socketId).emit('getUsers', onlineUsersIds);
-            const onlineFollowersIds = await findOnlinefollowerUsers(userId);
-            onlineFollowersIds?.forEach(async (followerId) => {
-              const followersocket = await getUser(followerId);
-              io.to(followersocket?.socketId).emit('followerConnected', [
-                userId,
-              ]);
-            });
-          }
-        });
+    jwt.verify(
+      socket.handshake.query.token,
+      process.env.JWT_SECRET,
+      (err, decoded) => {
+        if (err) {
+          console.log('err', err);
+        } else {
+          // take userId and socketId from user
+          socket.on('addUser', async (userId) => {
+            if (userId != null) {
+              addUser(userId, socket.id);
+              const onlineUsersIds = await findOnlinefollowingUsers(userId);
+              const usersocket = await getUser(userId);
+              io.to(usersocket?.socketId).emit('getUsers', onlineUsersIds);
+              const onlineFollowersIds = await findOnlinefollowerUsers(userId);
+              onlineFollowersIds?.forEach(async (followerId) => {
+                const followersocket = await getUser(followerId);
+                io.to(followersocket?.socketId).emit('followerConnected', [
+                  userId,
+                ]);
+              });
+            }
+          });
 
-        // send and get message
-        socket.on('sendMessage', async ({ senderId, receiverId, text }) => {
-          try {
-            const user = await getUser(receiverId);
-            io.to(user?.socketId).emit('getMessage', {
-              senderId,
-              text,
-            });
-          } catch (error) {
-            console.log('Error occured', error);
-          }
-        });
+          // send and get message
+          socket.on('sendMessage', async ({ senderId, receiverId, text }) => {
+            try {
+              const user = await getUser(receiverId);
+              io.to(user?.socketId).emit('getMessage', {
+                senderId,
+                text,
+              });
+            } catch (error) {
+              console.log('Error occured', error);
+            }
+          });
 
-        // when disconnect remove the user from user list and fetch new onlineUsers list
-        socket.on('disconnect', async () => {
-          const user = await getUser(decoded?._id);
-          if (user?.socketId != null) {
-            const userId = decoded?._id;
-            const onlineFollowersIds = await findOnlinefollowerUsers(userId);
-            onlineFollowersIds?.forEach(async (followerId) => {
-              const followersocket = await getUser(followerId);
-              io.to(followersocket?.socketId).emit('followerDisconnected', [
-                userId,
-              ]);
-            });
-            removeUser(decoded?._id);
-          }
-        });
-      }
-    });
+          // when disconnect remove the user from user list and fetch new onlineUsers list
+          socket.on('disconnect', async () => {
+            const user = await getUser(decoded?._id);
+            if (user?.socketId != null) {
+              const userId = decoded?._id;
+              const onlineFollowersIds = await findOnlinefollowerUsers(userId);
+              onlineFollowersIds?.forEach(async (followerId) => {
+                const followersocket = await getUser(followerId);
+                io.to(followersocket?.socketId).emit('followerDisconnected', [
+                  userId,
+                ]);
+              });
+              removeUser(decoded?._id);
+            }
+          });
+        }
+      },
+    );
   });
   return io;
 };

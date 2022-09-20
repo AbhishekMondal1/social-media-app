@@ -3,9 +3,7 @@ const bcrypt = require('bcrypt');
 const session = require('express-session');
 const MongoStore = require('connect-mongodb-session')(session);
 const User = require('../models/user');
-const { ADMIN_COOKIE_NAME } = require('../config/keys');
-const { ADMIN_COOKIE_PASS } = require('../config/keys');
-const { MONGOURI } = require('../config/keys');
+
 /**
  * @param {AdminBro} admin
  * @return {express.Router} router
@@ -15,9 +13,10 @@ const buildAdminRouter = (admin) => {
   const router = buildAuthenticatedRouter(
     admin,
     {
-      cookieName: ADMIN_COOKIE_NAME || 'admin-bro',
+      cookieName: process.env.ADMIN_COOKIE_NAME || 'admin-bro',
       cookiePassword:
-        ADMIN_COOKIE_PASS || 'secret-long-password-for-admin-bro-login',
+        process.env.ADMIN_COOKIE_PASS ||
+        'secret-long-password-for-admin-bro-login',
       authenticate: async (email, password) => {
         const user = await User.findOne({ email });
         if (user) {
@@ -35,7 +34,7 @@ const buildAdminRouter = (admin) => {
     {
       resave: false,
       saveUninitialized: true,
-      store: new MongoStore({ mongooseConnection: MONGOURI }),
+      store: new MongoStore({ mongooseConnection: process.env.MONGOURI }),
     },
   );
   return router;

@@ -3,14 +3,12 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const sendgridTranspost = require('nodemailer-sendgrid-transport');
-const { JWT_SECRET } = require('../config/keys');
-const { SENDGRID_KEY } = require('../config/keys');
 const User = require('../models/user');
 
 const transposter = nodemailer.createTransport(
   sendgridTranspost({
     auth: {
-      api_key: SENDGRID_KEY,
+      api_key: process.env.SENDGRID_KEY,
     },
   }),
 );
@@ -97,7 +95,7 @@ const signin = async (req, res) => {
 
     const doMatch = await bcrypt.compare(password, savedUser[0].password);
     if (doMatch) {
-      const token = jwt.sign({ _id: savedUser[0]._id }, JWT_SECRET);
+      const token = jwt.sign({ _id: savedUser[0]._id }, process.env.JWT_SECRET);
       const {
         _id,
         name,
