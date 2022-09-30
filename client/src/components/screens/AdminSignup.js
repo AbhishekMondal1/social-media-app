@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import GoogleBtn from "../GoogleBtn/GoogleBtn";
+
 const AdminSignup = () => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -124,7 +126,15 @@ const AdminSignup = () => {
           Signup
         </button>
         <h5>
-          <a href="http://localhost:5000/auth/google">Login with Google</a>
+          <a
+            href={
+              process.env.NODE_ENV === "production"
+                ? "/auth/google"
+                : `${process.env.REACT_APP_API_URL}/auth/google`
+            }
+          >
+            <GoogleBtn title={"Sign up with Google"} />
+          </a>
         </h5>
         <h5>
           <Link to="/signin"> Already have an account?</Link>

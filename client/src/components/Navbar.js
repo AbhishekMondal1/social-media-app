@@ -1,6 +1,7 @@
 import React, { useContext, useRef, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import axios from "axios";
 import { UserContext } from "../context/UserContext/UserContext";
 import "./navbar.css";
 import M from "materialize-css";
@@ -66,6 +67,16 @@ const NavBar = () => {
       },
     );
   }, [socketState]);
+
+  const logout = async () => {
+    localStorage.clear();
+    userDispatch({ type: "CLEAR" });
+    axios.get("/logout").then((res) => {
+      if (res.data.message === "Logged out successfully") {
+        navigate("/signin");
+      }
+    });
+  };
 
   const renderList = () => {
     if (userState) {
@@ -140,9 +151,7 @@ const NavBar = () => {
             <button
               className="btnexit"
               onClick={() => {
-                localStorage.clear();
-                userDispatch({ type: "CLEAR" });
-                navigate("/signin");
+                logout();
               }}
             >
               <img src={logouticon} />

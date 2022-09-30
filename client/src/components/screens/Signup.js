@@ -137,7 +137,13 @@ const Signup = () => {
             Signup
           </button>
           <h5>
-            <a href="http://localhost:5000/auth/google">
+            <a
+              href={
+                process.env.NODE_ENV === "production"
+                  ? "/auth/google"
+                  : `${process.env.REACT_APP_API_URL}/auth/google`
+              }
+            >
               <GoogleBtn title={"Sign up with Google"} />
             </a>
           </h5>
