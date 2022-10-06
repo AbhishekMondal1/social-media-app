@@ -1,18 +1,14 @@
 import { io } from "socket.io-client";
 
-const token = localStorage.getItem("jwt");
-
-const socketNotification = io("ws://localhost:9011", {
-  query: { token },
+const socketNotification = io("http://localhost:9011", {
   autoConnect: false,
 });
-if (token) socketNotification.connect();
+socketNotification.connect();
 
-const socketChat = io("ws://localhost:9010", {
-  query: { token },
+const socketChat = io("/", {
   autoConnect: false,
 });
-if (token) socketChat.connect();
+socketChat.connect();
 
 export const initialSocketState = {
   notificationSocket: socketNotification,

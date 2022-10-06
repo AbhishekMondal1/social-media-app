@@ -3,15 +3,15 @@ const mongoose = require('mongoose');
 
 const User = mongoose.model('User');
 
-module.exports = (req, res, next) => {
-  const { authorization } = req.headers;
-  if (req.user && !authorization) {
+module.exports = async (req, res, next) => {
+  const { jwtToken } = req.session;
+  if (req.user && !jwtToken) {
     const { user } = req;
     const [userdata] = user;
     req.user = userdata;
     next();
-  } else if (!req.user && authorization) {
-    const token = authorization.replace('Bearer ', '');
+  } else if (!req.user && jwtToken) {
+    const token = jwtToken;
     jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
       if (err) {
         return res
@@ -24,7 +24,7 @@ module.exports = (req, res, next) => {
         next();
       });
     });
-  } else if (!req.user && !authorization) {
+  } else if (!req.user && !jwtToken) {
     return res
       .status(401)
       .json({ error: 'Unauthorized! you must be logged in.' });

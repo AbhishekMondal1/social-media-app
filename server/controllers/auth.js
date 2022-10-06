@@ -108,6 +108,10 @@ const signin = async (req, res) => {
         provider,
         createdAt,
       } = savedUser[0];
+
+      const { session } = req;
+      session.jwtToken = token;
+
       res.json({
         token,
         user: {
@@ -186,9 +190,20 @@ const setNewPassword = (req, res) => {
   });
 };
 
+const logout = (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error while logging out' });
+    }
+    res.clearCookie('socialsession');
+    res.json({ message: 'Logged out successfully' });
+  });
+};
+
 module.exports = {
   signup,
   signin,
   resetPassword,
   setNewPassword,
+  logout,
 };

@@ -10,7 +10,7 @@ passport.use(
       callbackURL: '/auth/google/callback',
     },
     (accessToken, refreshToken, profile, cb) => {
-      User.findOne({ userId: profile.id }).then((existingUser) => {
+      User.findOne({ providerId: profile.id }).then((existingUser) => {
         if (existingUser) {
           cb(null, existingUser);
         } else {

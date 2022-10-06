@@ -1,15 +1,15 @@
 const socketio = require('socket.io');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
-const redisClient = require('../database/redis');
+const { redisClient } = require('../database/redis');
 const User = require('../models/user');
 const Notification = require('../models/notification');
 
 // Notification Socket
-const notificationSocket = (serverUrl) => {
+const notificationSocket = () => {
   const ioNotification = socketio(9011, {
     cors: {
-      origin: serverUrl,
+      origin: process.env.CORS_ORIGIN,
     },
   });
 
@@ -152,13 +152,11 @@ const notificationSocket = (serverUrl) => {
 };
 
 // Message Socket
-const messageSocket = (serverUrl) => {
-  const io = socketio(9010, {
-    cors: {
-      origin: serverUrl,
-    },
+const messageSocket = (httpServer, sessionMiddleware) => {
+  const io = socketio(httpServer);
+  io.use((socket, next) => {
+    sessionMiddleware(socket.request, socket.request.res || {}, next);
   });
-
   // add user to onlineUsers list
   const addUser = async (userId, socketId) => {
     await redisClient.hSet(
@@ -259,7 +257,7 @@ const messageSocket = (serverUrl) => {
   io.on('connection', (socket) => {
     // when user connects
     jwt.verify(
-      socket.handshake.query.token,
+      socket.request.session?.jwtToken,
       process.env.JWT_SECRET,
       (err, decoded) => {
         if (err) {

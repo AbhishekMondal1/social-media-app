@@ -11,14 +11,11 @@ const Post = require('../models/post');
 const app = express();
 const port = 3001;
 
-const run = async () => {
-  const dbmongo = await mongoose.connect(
-    'mongodb+srv://abhi:P4ssNewSavedn0w@cluster0.ldotm.mongodb.net/test?retryWrites=true&w=majority',
-    {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    },
-  );
+const adminbroServer = async () => {
+  const dbmongo = await mongoose.connect(process.env.MONGOURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
 
   const admin = new AdminBro({
     databases: [dbmongo],
@@ -74,4 +71,4 @@ const run = async () => {
   });
 };
 
-module.exports = run;
+module.exports = adminbroServer;
