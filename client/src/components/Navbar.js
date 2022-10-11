@@ -35,7 +35,7 @@ const NavBar = () => {
   }, []);
 
   useEffect(() => {
-    if (notificationState.newNotification) {
+    if (notificationState.newNotification.length > 0) {
       toast(
         <Notifications notification={notificationState.newNotification[0]} />,
         {
