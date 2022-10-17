@@ -34,12 +34,15 @@ const Post = ({
   };
 
   const likepost = (postId, receiverId) => {
-    socketState.notificationSocket?.emit("sendNotification", {
-      senderId: userState._id,
-      receiverId: receiverId,
-      postId: postId,
-      notificationType: "like",
-    });
+    const senderId = userState._id;
+    if (senderId !== receiverId) {
+      socketState.notificationSocket?.emit("sendNotification", {
+        senderId: senderId,
+        receiverId: receiverId,
+        postId: postId,
+        notificationType: "like",
+      });
+    }
 
     axios
       .put(

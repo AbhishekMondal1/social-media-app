@@ -6,13 +6,14 @@ const User = require('../models/user');
 const Notification = require('../models/notification');
 
 // Notification Socket
-const notificationSocket = () => {
-  const ioNotification = socketio(9011, {
-    cors: {
-      origin: process.env.CORS_ORIGIN,
-    },
+const notificationSocket = (httpServer, sessionMiddleware) => {
+  const ioNotification = socketio(httpServer, {
+    path: '/notification',
   });
 
+  ioNotification.use((socket, next) => {
+    sessionMiddleware(socket.request, socket.request.res || {}, next);
+  });
   // add user to globalOnlineUsers list
   const addGlobalUser = async (userId, socketId) => {
     await redisClient.hSet(
@@ -38,7 +39,7 @@ const notificationSocket = () => {
 
   ioNotification.on('connection', (socket) => {
     jwt.verify(
-      socket.handshake.query.token,
+      socket.request.session?.jwtToken,
       process.env.JWT_SECRET,
       (err, decoded) => {
         if (err) {
@@ -52,93 +53,102 @@ const notificationSocket = () => {
           socket.on(
             'sendNotification',
             async ({ senderId, receiverId, postId, notificationType }) => {
-              const user = await getGlobalUser(receiverId);
+              if (
+                senderId != null &&
+                receiverId != null &&
+                postId != null &&
+                notificationType != null
+              ) {
+                if (senderId !== receiverId) {
+                  const user = await getGlobalUser(receiverId);
 
-              // insert into notifications collection
-              const senderUser = await User.findById(senderId);
-              let notificationText = '';
-              if (notificationType === 'like') {
-                notificationText = `${senderUser.username} liked your post.`;
-              }
-              if (notificationType === 'comment') {
-                notificationText = `${senderUser.username} commented on your post.`;
-              }
-              if (notificationType === 'follow') {
-                notificationText = `${senderUser.username} started following you.`;
-              }
-              const notification = new Notification({
-                senderId,
-                receiverId,
-                notificationType,
-                notificationText,
-                link: mongoose.Types.ObjectId(postId),
-              });
-              await notification.save();
+                  // insert into notifications collection
+                  const senderUser = await User.findById(senderId);
+                  let notificationText = '';
+                  if (notificationType === 'like') {
+                    notificationText = `${senderUser.username} liked your post.`;
+                  }
+                  if (notificationType === 'comment') {
+                    notificationText = `${senderUser.username} commented on your post.`;
+                  }
+                  if (notificationType === 'follow') {
+                    notificationText = `${senderUser.username} started following you.`;
+                  }
+                  const notification = new Notification({
+                    senderId,
+                    receiverId,
+                    notificationType,
+                    notificationText,
+                    link: mongoose.Types.ObjectId(postId),
+                  });
+                  await notification.save();
 
-              const notificationSend = await Notification.aggregate([
-                {
-                  $match: {
-                    _id: notification._id,
-                  },
-                },
-                {
-                  $lookup: {
-                    from: 'users',
-                    localField: 'senderId',
-                    foreignField: '_id',
-                    as: 'sender',
-                  },
-                },
-                {
-                  $lookup: {
-                    from: 'posts',
-                    localField: 'link',
-                    foreignField: '_id',
-                    as: 'post',
-                  },
-                },
-                {
-                  $unwind: {
-                    path: '$sender',
-                    preserveNullAndEmptyArrays: false,
-                  },
-                },
-                {
-                  $set: {
-                    following: {
-                      $cond: {
-                        if: {
-                          $eq: ['$notificationType', 'follow'],
-                        },
-                        then: {
-                          $in: ['$receiverId', '$sender.followers'],
-                        },
-                        else: '$$REMOVE',
+                  const notificationSend = await Notification.aggregate([
+                    {
+                      $match: {
+                        _id: notification._id,
                       },
                     },
-                  },
-                },
-                {
-                  $project: {
-                    _id: 1,
-                    'sender._id': 1,
-                    'sender.username': 1,
-                    'sender.pic': 1,
-                    notificationType: 1,
-                    notificationText: 1,
-                    'post._id': 1,
-                    'post.photo': 1,
-                    following: 1,
-                    read: 1,
-                    link: 1,
-                    createdAt: 1,
-                  },
-                },
-              ]);
+                    {
+                      $lookup: {
+                        from: 'users',
+                        localField: 'senderId',
+                        foreignField: '_id',
+                        as: 'sender',
+                      },
+                    },
+                    {
+                      $lookup: {
+                        from: 'posts',
+                        localField: 'link',
+                        foreignField: '_id',
+                        as: 'post',
+                      },
+                    },
+                    {
+                      $unwind: {
+                        path: '$sender',
+                        preserveNullAndEmptyArrays: false,
+                      },
+                    },
+                    {
+                      $set: {
+                        following: {
+                          $cond: {
+                            if: {
+                              $eq: ['$notificationType', 'follow'],
+                            },
+                            then: {
+                              $in: ['$receiverId', '$sender.followers'],
+                            },
+                            else: '$$REMOVE',
+                          },
+                        },
+                      },
+                    },
+                    {
+                      $project: {
+                        _id: 1,
+                        'sender._id': 1,
+                        'sender.username': 1,
+                        'sender.pic': 1,
+                        notificationType: 1,
+                        notificationText: 1,
+                        'post._id': 1,
+                        'post.photo': 1,
+                        following: 1,
+                        read: 1,
+                        link: 1,
+                        createdAt: 1,
+                      },
+                    },
+                  ]);
 
-              ioNotification.to(user?.socketId).emit('getNotification', {
-                notificationSend,
-              });
+                  ioNotification.to(user?.socketId).emit('getNotification', {
+                    notificationSend,
+                  });
+                }
+              }
             },
           );
           socket.on('disconnect', () => {
@@ -153,7 +163,9 @@ const notificationSocket = () => {
 
 // Message Socket
 const messageSocket = (httpServer, sessionMiddleware) => {
-  const io = socketio(httpServer);
+  const io = socketio(httpServer, {
+    path: '/chat',
+  });
   io.use((socket, next) => {
     sessionMiddleware(socket.request, socket.request.res || {}, next);
   });

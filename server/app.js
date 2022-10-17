@@ -34,6 +34,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.enable('trust proxy');
 
 // database connection
 dbconnection();
@@ -91,7 +92,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // socketio
-notificationSocket();
+notificationSocket(httpServer, sessionMiddleware);
 messageSocket(httpServer, sessionMiddleware);
 
 adminbroServer();
