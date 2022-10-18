@@ -21,7 +21,8 @@ const adminbroServer = require('./admin/adminServer');
 const { dbconnection } = require('./database/mongodb');
 const { redisStoreClient } = require('./database/redis');
 
-const { notificationSocket, messageSocket } = require('./listeners/socketio');
+const { notificationSocket } = require('./listeners/notificationSocket');
+const { chatSocket } = require('./listeners/chatSocket');
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -34,6 +35,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.enable('trust proxy');
 
 // database connection
 dbconnection();
@@ -91,8 +93,8 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // socketio
-notificationSocket();
-messageSocket(httpServer, sessionMiddleware);
+notificationSocket(httpServer, sessionMiddleware);
+chatSocket(httpServer, sessionMiddleware);
 
 adminbroServer();
 

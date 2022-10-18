@@ -9,7 +9,7 @@ const googleCallbackAuthenticate = passport.authenticate('google', {
 });
 
 const googleCallback = (req, res) => {
-  res.redirect('http://localhost:3005/');
+  res.redirect(process.env.CLIENT_URL);
 };
 
 module.exports = {

@@ -1,13 +1,21 @@
 import { io } from "socket.io-client";
 
-const socketNotification = io("http://localhost:9011", {
-  autoConnect: false,
-});
+const socketNotification = io(
+  "/",
+  { path: "/notification" },
+  {
+    autoConnect: true,
+  },
+);
 socketNotification.connect();
 
-const socketChat = io("/", {
-  autoConnect: false,
-});
+const socketChat = io(
+  "/",
+  { path: "/chat" },
+  {
+    autoConnect: true,
+  },
+);
 socketChat.connect();
 
 export const initialSocketState = {
