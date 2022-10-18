@@ -113,7 +113,6 @@ const chatSocket = (httpServer, sessionMiddleware) => {
 
   // socket events for chat
   const chatSocketEvents = (socket, decoded) => {
-    console.log('PARAMETER', socket, 'dec', decoded);
     socket.on('addUser', async (userId) => {
       if (userId != null) {
         addUser(userId, socket.id);
@@ -166,7 +165,6 @@ const chatSocket = (httpServer, sessionMiddleware) => {
 
   // establish chat socket connection
   io.on('connection', (socket) => {
-    console.log('a user connected', socket.request.session);
     if (!socket.request.session.passport && socket.request.session.jwtToken) {
       jwt.verify(
         socket.request.session?.jwtToken,

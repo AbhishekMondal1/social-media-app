@@ -135,7 +135,6 @@ const notificationSocket = (httpServer, sessionMiddleware) => {
 
   // socket events for notification
   const notificationSocketEvents = (socket, decoded) => {
-    console.log('DEC0D3D: ', decoded);
     socket.on('joinNotification', async (userId) => {
       if (userId != null) {
         addGlobalUser(userId, socket.id);
@@ -176,7 +175,6 @@ const notificationSocket = (httpServer, sessionMiddleware) => {
 
   // establish notification socket connection
   ioNotification.on('connection', (socket) => {
-    console.log('noti sockets ✔️', socket.request.session);
     if (!socket.request.session.passport && socket.request.session.jwtToken) {
       jwt.verify(
         socket.request.session?.jwtToken,
